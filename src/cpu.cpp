@@ -163,7 +163,7 @@ extern void interpret_opcode(uint8_t opcode)
 		print_addressingmode(addressing_mode);
 	}
 	switch (opcode) {
-	/* ASL - Arithmetic Shift Left*/
+  /* ASL - Arithmetic Shift Left*/
 	case 0x69:
 	case 0x65:
 	case 0x75:
@@ -431,6 +431,7 @@ static const char *print_addressingmode (addressing_modes_t mode)
 	};
   return modes[mode];
 }
+
 /* TODO add tests for this and decode addressing mode */
 static bool compare (uint8_t opcode)
 {
