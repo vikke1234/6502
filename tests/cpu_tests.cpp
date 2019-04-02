@@ -1,10 +1,10 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include "../src/cpu.cpp"
+#include "../headers/cpu.h"
 
 void run_addressing_test(int start, addressing_modes_t mode) {
   for (int i = start; i < start + 0xe0; i += 0x20) {
-    addressing_modes_t returned_mode = decode_opcode(i);
+    addressing_modes_t returned_mode = decode_addressing_mode(i);
     INFO("opcode: " << std::hex << i << ", mode returned: " << print_addressingmode(returned_mode) << ", comapred to: " << print_addressingmode(mode));
     CHECK(returned_mode == mode);
   }

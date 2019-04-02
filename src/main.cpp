@@ -8,16 +8,12 @@ void print_help();
 
 int main(int argc, char *argv[])
 {
-	std::map<int, instruction_pointer> instruction;
 	//FILE *file = fopen("/home/viho/Downloads/SMB.nes", "rb");
-	struct stat st;
-	stat("/home/viho/Downloads/SMB.nes", &st);
-	long long size = st.st_size;
-	uint8_t data[size];
-	//fread(data, 1, size, file);
+  uint8_t data[4];
 	data[0] = 0x69;
 	data[1] = 0x2d;
 	data[2] = 0x0e;
+
 	for (int i = 0; i < 3; i++) {
 		interpret_opcode(data[i]);
 	}

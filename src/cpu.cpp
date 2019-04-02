@@ -4,448 +4,248 @@
 #include <stdio.h>
 #include <unordered_map>
 
-/* this is for editing processor status */
-typedef enum {
-	NEGATIVE    = 0x1 << 6,
-	OVERFLOW    = 0x1 << 5,
-	BFLAG       = 0x1 << 4,
-	DECIMAL     = 0x1 << 3,
-	INTERRUPT   = 0x1 << 2,
-	ZERO        = 0x1 << 1,
-	CARRY       = 0x1 << 0
-} flags_t;
+#ifdef DEBUG
+#define __print_addressingmode(v) printf("%s", (v))
+#else
+#define __print_addressingmode(v)
+#endif
 
-typedef enum {
-	IMPLICT,
-	ACCUMULATOR,
-	IMMEDIATE,
-	ZERO_PAGE,
-	ZERO_PAGE_X,
-	ZERO_PAGE_Y,
-	RELATIVE,
-	IMPLIED,
-	ABSOLUTE,
-	ABSOLUTE_X,
-	ABSOLUTE_Y,
-	INDIRECT,
-  INDIRECT_X,
-	INDIRECT_Y,
-	UNKNOWN
-} addressing_modes_t;
-
-/* this will probably just be written to as a uint8_t * instead of separately */
-typedef struct {
-	uint8_t RAM              [0x1fff]; /* RAM size 0x800, mirrored 3 times */
-	uint8_t ppu_registers    [0x2000]; /* actual size 0x8, repeats every 8 bytes */
-	uint8_t apu_registers    [0x18];
-	uint8_t test_registers   [0x8];    /* for when the CPU is in test mode */
-	uint8_t rom              [0xbfe0]; /* ROM space and mapper registers */
-} memory_map;
-
-typedef struct {
-	uint16_t pc;
-	uint8_t accumulator;
-	uint8_t stack_pointer; /* this probably has to be an array */
-	uint8_t x, y;
-	uint8_t status;          /** NVss DIZC, @see FLAGS */
-} processor_registers;
+typedef void (*instruction_pointer)(addressing_modes_t);
 
 static processor_registers registers;
-static memory_map memory;
+static memory_map _memory; /* for "easier" access to the different parts of memory */
 
-
-/**
- * @brief sets the flag to the value of b
- * @param flag
- * @param b what the flag should be
- */
-
-static void set_flags(flags_t flag, bool b);
-
-/**
- * @brief gets a given flag, 1 or 0
- * @param flag
- */
-
-static uint8_t get_flag(flags_t flag);
-
-/**
- * @brief reads 2 little endian  bytes and combines them into a 16bit unsigned
- * assumes that thereemacs's atleast 2 bytes to read
- */
-static uint16_t read2bytes();
-
-/**
- * @brief decodes what addressing mode the opcode is in
- * @param opcode
- */
-
-static addressing_modes_t decode_opcode(uint8_t opcode);
-/**
- * @brief prints which addressing mode is currently used
- * @param mode
- */
-static const char *print_addressingmode (addressing_modes_t mode);
-
-/**
- * @brief does comparison for branch instructions
- * @param opcode
- * @return true/false whether registercompared is equal to the 6th byte
- */
-static bool compare (uint8_t opcode);
-
-/* TODO: add small documentation on theese, maybe not and just link documentation, maybe remove static?
- * also think how to get theese to a map in main.cpp, theese might be removed,
- * they'll stay for now untill I decide how I should implement a jump table, if I even do */
-static void ADC(addressing_modes_t addressing_mode);
-static void AND(addressing_modes_t addressing_mode);
-static void ASL(addressing_modes_t addressing_mode);
-static void BCC(addressing_modes_t addressing_mode);
-static void BCS(addressing_modes_t addressing_mode);
-static void BEQ(addressing_modes_t addressing_mode);
-static void BIT(addressing_modes_t addressing_mode);
-static void BMI(addressing_modes_t addressing_mode);
-static void BNE(addressing_modes_t addressing_mode);
-static void BPL(addressing_modes_t addressing_mode);
-static void BRK(addressing_modes_t addressing_mode);
-static void BVC(addressing_modes_t addressing_mode);
-static void BVS(addressing_modes_t addressing_mode);
-static void CLC(addressing_modes_t addressing_mode);
-static void CLD(addressing_modes_t addressing_mode);
-static void CLI(addressing_modes_t addressing_mode);
-static void CLV(addressing_modes_t addressing_mode);
-static void CMP(addressing_modes_t addressing_mode);
-static void CPX(addressing_modes_t addressing_mode);
-static void CPY(addressing_modes_t addressing_mode);
-static void DEC(addressing_modes_t addressing_mode);
-static void DEX(addressing_modes_t addressing_mode);
-static void DEY(addressing_modes_t addressing_mode);
-static void EOR(addressing_modes_t addressing_mode);
-static void INC(addressing_modes_t addressing_mode);
-static void INX(addressing_modes_t addressing_mode);
-static void INY(addressing_modes_t addressing_mode);
-static void JMP(addressing_modes_t addressing_mode);
-static void JSR(addressing_modes_t addressing_mode);
-static void LDA(addressing_modes_t addressing_mode);
-static void LDX(addressing_modes_t addressing_mode);
-static void LDY(addressing_modes_t addressing_mode);
-static void LSR(addressing_modes_t addressing_mode);
-static void NOP(addressing_modes_t addressing_mode);
-static void ORA(addressing_modes_t addressing_mode);
-static void PHA(addressing_modes_t addressing_mode);
-static void PHP(addressing_modes_t addressing_mode);
-static void PLA(addressing_modes_t addressing_mode);
-static void PLP(addressing_modes_t addressing_mode);
-static void ROL(addressing_modes_t addressing_mode);
-static void ROR(addressing_modes_t addressing_mode);
-static void RTI(addressing_modes_t addressing_mode);
-static void RTS(addressing_modes_t addressing_mode);
-static void SBC(addressing_modes_t addressing_mode);
-static void SEC(addressing_modes_t addressing_mode);
-static void SED(addressing_modes_t addressing_mode);
-static void SEI(addressing_modes_t addressing_mode);
-static void STA(addressing_modes_t addressing_mode);
-static void STX(addressing_modes_t addressing_mode);
-static void STY(addressing_modes_t addressing_mode);
-static void TAX(addressing_modes_t addressing_mode);
-static void TAY(addressing_modes_t addressing_mode);
-static void TSX(addressing_modes_t addressing_mode);
-static void TXA(addressing_modes_t addressing_mode);
-static void TXS(addressing_modes_t addressing_mode);
-static void TYA(addressing_modes_t addressing_mode);
-
+/* TODO: make pc increments reasonable */
 extern void interpret_opcode(uint8_t opcode)
 {
-	addressing_modes_t addressing_mode = RELATIVE;
+  /* figure out how to reduce the amount of shit in this? */
+  static std::unordered_map<unsigned char, void (*)(addressing_modes_t)> instructions = {
+    {0x69, &ADC},{0x65, &ADC},{0x75, &ADC},{0x6D, &ADC},{0x7D, &ADC},{0x79, &ADC}, {0x61, &ADC},{0x71, &ADC},
 
-	if(opcode & 0x10) {
-		addressing_mode = decode_opcode(opcode);
-		print_addressingmode(addressing_mode);
-	}
-	switch (opcode) {
-  /* ASL - Arithmetic Shift Left*/
-	case 0x69:
-	case 0x65:
-	case 0x75:
-	case 0x6D:
-	case 0x7D:
-	case 0x79:
-	case 0x61:
-	case 0x71:
-		break;
+    {0x29, &AND}, {0x25, &AND}, {0x35, &AND}, {0x2D, &AND}, {0x3D, &AND}, {0x39, &AND}, {0x21, &AND},
+    {0x31, &AND},
 
+    {0x0A, &ASL}, {0x06, &ASL}, {0x16, &ASL}, {0x0E, &ASL}, {0x1E, &ASL},
 
-	/* BCS - Branch if Carry Set*/
-	case 0x29:
-	case 0x25:
-	case 0x35:
-	case 0x2D:
-	case 0x3D:
-	case 0x39:
-	case 0x21:
-	case 0x31:
-		break;
+    {0x90, &BCC}, {0xB0, &BCS}, {0xF0, &BEQ},
 
+    {0x24, &BIT}, {0x2C, &BIT},
 
-	/* BIT - Bit Test*/
-	case 0x0A:
-	case 0x06:
-	case 0x16:
-	case 0x0E:
-	case 0x1E:
-		break;
+    {0x30, &BMI}, {0xD0, &BNE}, {0x10, &BPL}, {0x00, &BRK}, {0x50, &BVC}, {0x70, &BVS},
 
+    {0x18, &CLC}, {0xD8, &CLD}, {0x58, &CLI}, {0xB8, &CLV},
 
-	/* BNE - Branch if Not Equal*/
-	case 0x90:
-		break;
+    {0xC9, &CMP}, {0xC5, &CMP}, {0xD5, &CMP}, {0xCD, &CMP}, {0xDD, &CMP}, {0xD9, &CMP}, {0xC1, &CMP}, {0xD1, &CMP},
 
+    {0xE0, &CPX}, {0xE4, &CPX}, {0xEC, &CPX}, {0xC0, &CPY}, {0xC4, &CPY}, {0xCC, &CPY},
 
-	/* BRK - Force Interrupt*/
-	case 0xB0:
-		break;
+    {0xC6, &DEC}, {0xD6, &DEC}, {0xCE, &DEC}, {0xDE, &DEC}, {0xCA, &DEX}, {0x88, &DEY}, 
 
+    {0x49, &EOR}, {0x45, &EOR}, {0x55, &EOR}, {0x4D, &EOR}, {0x5D, &EOR}, {0x59, &EOR}, {0x41, &EOR}, {0x51, &EOR},
 
-	/* BVS - Branch if Overflow Set*/
-	case 0xF0:
-		break;
+    {0xE6, &INC}, {0xF6, &INC}, {0xEE, &INC}, {0xFE, &INC}, {0xE8, &INX}, {0xC8, &INY}, {0x4C, &JMP}, {0x6C, &JMP}, {0x20, &JSR},
 
+    {0xA9, &LDA}, {0xA5, &LDA}, {0xB5, &LDA}, {0xAD, &LDA}, {0xBD, &LDA}, {0xB9, &LDA}, {0xA1, &LDA}, {0xB1, &LDA},
 
-	/* CLD - Clear Decimal Mode*/
-	case 0x24:
-	case 0x2C:
-		break;
+    {0xA2, &LDX}, {0xA6, &LDX}, {0xB6, &LDX}, {0xAE, &LDX}, {0xBE, &LDX},
+    {0xA0, &LDY}, {0xA4, &LDY}, {0xB4, &LDY}, {0xAC, &LDY}, {0xBC, &LDY},
 
+    {0x4A, &LSR}, {0x46, &LSR}, {0x56, &LSR}, {0x4E, &LSR}, {0x5E, &LSR},
 
-	/* CLV - Clear Overflow Flag*/
-	case 0x30:
-		break;
+    {0xEA, &NOP},
 
+    {0x05, &ORA}, {0x09, &ORA}, {0x15, &ORA}, {0x0D, &ORA}, {0x1D, &ORA}, {0x19, &ORA}, {0x01, &ORA}, {0x11, &ORA},
 
-	/* CPX - Compare X Register*/
-	case 0xD0:
-		break;
+    {0x48, &PHA}, {0x08, &PHP}, {0x69, &PLA}, {0x28, &PLP},
 
+    {0x2A, &ROL}, {0x26, &ROL}, {0x36, &ROL}, {0x2e, &ROL}, {0x3e, &ROL},
 
-	/* DEC - Decrement Memory*/
-	case 0x10:
-		break;
+    {0x6a, &ROR}, {0x66, &ROR}, {0x76, &ROR}, {0x6e, &ROR}, {0x7e, &ROR},
 
+    {0x40, &RTI}, {0x60, &RTS},
+    {0xE9, &SBC}, {0xE5, &SBC}, {0xF5, &SBC}, {0xED, &SBC}, {0xFD, &SBC}, {0xF9, &SBC}, {0xE1, &SBC}, {0xF1, &SBC},
 
-	/* DEY - Decrement Y Register*/
-	case 0x00:
-		break;
+    {0x38, &SEC}, {0xF8, &SED}, {0x78, &SEI}
+  };
 
-
-	/* INC - Increment Memory*/
-	case 0x50:
-		break;
-
-
-	/* INY - Increment Y Register*/
-	case 0x70:
-		break;
-
-
-	/* JSR - Jump to Subroutine*/
-	case 0x18:
-		break;
-
-
-	/* LDX - Load X Register*/
-	case 0xD8:
-		break;
-
-
-	/* LSR - Logical Shift Right*/
-	case 0x58:
-		break;
-
-
-	/* ORA - Logical Inclusive OR*/
-	case 0xB8:
-		break;
-
-
-	/* PHP - Push Processor Status*/
-	case 0xC9:
-	case 0xC5:
-	case 0xD5:
-	case 0xCD:
-	case 0xDD:
-	case 0xD9:
-	case 0xC1:
-	case 0xD1:
-		break;
-
-
-	/* PLP - Pull Processor Status*/
-	case 0xE0:
-	case 0xE4:
-	case 0xEC:
-		break;
-
-
-	/* ROR - Rotate Right*/
-	case 0xC0:
-	case 0xC4:
-	case 0xCC:
-		break;
-
-
-	/* RTS - Return from Subroutine*/
-	case 0xC6:
-	case 0xD6:
-	case 0xCE:
-	case 0xDE:
-		break;
-
-
-	/* SEC - Set Carry Flag*/
-	case 0xCA:
-		break;
-
-
-	/* SEI - Set Interrupt Disable*/
-	case 0x88:
-		break;
-
-
-	/* STX - Store X Register*/
-	case 0x49:
-	case 0x45:
-	case 0x55:
-	case 0x4D:
-	case 0x5D:
-	case 0x59:
-	case 0x41:
-	case 0x51:
-		break;
-
-
-	/* TAX - Transfer Accumulator to X*/
-	case 0xE6:
-	case 0xF6:
-	case 0xEE:
-	case 0xFE:
-		break;
-
-
-	/* TSX - Transfer Stack Pointer to X*/
-	case 0xE8:
-		break;
-
-
-	/* TXS - Transfer X to Stack Pointer*/
-	case 0xC8:
-		break;
-
-	default:
-		break;
-	}
+  static unsigned char *memory = (unsigned char *) &_memory;
+  addressing_modes_t mode = decode_addressing_mode(opcode);
+  instructions[opcode](mode);
 }
 
-static void set_flags (flags_t flag, bool b)
+static inline void set_flags (flags_t flag, bool b)
 {
-	if (get_flag(flag) != b) {
-		registers.status ^= flag;
-	}
+  if (get_flag(flag) != b) {
+    registers.status ^= flag;
+  }
 }
 
-static uint8_t get_flag(flags_t flag)
+static inline uint8_t get_flag(flags_t flag)
 {
-	return !!(registers.status & flag); /* !! to turn it into a 1 or 0 to not require shifting and looking up the power of two it is */
+  return !!(registers.status & flag); /* !! to turn it into a 1 or 0 to not require shifting and looking up the power of two it is */
 }
 
-static uint16_t read2bytes()
+static inline uint16_t read_word()
 {
-	return ((memory.rom[registers.pc + 1] << 8) | memory.rom[registers.pc]);
+  uint16_t value = ((_memory.rom[registers.pc + 1] << 8) | _memory.rom[registers.pc]);
+  registers.pc += 2;
+  return value;
 }
 
-static addressing_modes_t decode_opcode(uint8_t opcode)
+static inline uint8_t read_byte()
 {
-	static std::unordered_map<int, addressing_modes_t> modes10 = {
-		{0x0, IMMEDIATE},
-		{0x1, ZERO_PAGE},
-		{0x2, ACCUMULATOR},
-		{0x3, ABSOLUTE},
-		{0x5, ZERO_PAGE_X},
-		{0x7, ABSOLUTE_X}
-	};
-	static std::unordered_map<int, addressing_modes_t> modes01 = {
-		{0x0, INDIRECT_X},
-		{0x1, ZERO_PAGE},
-		{0x2, IMMEDIATE},
-		{0x3, ABSOLUTE},
-		{0x4, INDIRECT_Y},
-		{0x5, ZERO_PAGE_X},
-		{0x6, ABSOLUTE_Y},
-		{0x7, ABSOLUTE_X}
-	};
-	static std::unordered_map<int, addressing_modes_t> modes00 = {
-		{0x0, IMMEDIATE},
-		{0x1, ZERO_PAGE},
-		{0x3, ABSOLUTE},
-		{0x5, ZERO_PAGE_X},
-		{0x7, ABSOLUTE_X}
-	};
+  uint8_t value = _memory.rom[registers.pc + 1];
+  registers.pc++;
+  return value;
+}
 
-	/* this is done to check which type of opcode
-	 * we're dealing with as there's 4 different ways to decode it*/
-	const uint8_t type = opcode & 0x3;
-	const uint8_t mode = (opcode & 0x1c) >> 2;
+static addressing_modes_t decode_addressing_mode(uint8_t opcode)
+{
+  static std::unordered_map<int, addressing_modes_t> modes10 = {
+    {0x0, IMMEDIATE},
+    {0x1, ZERO_PAGE},
+    {0x2, ACCUMULATOR},
+    {0x3, ABSOLUTE},
+    {0x5, ZERO_PAGE_X},
+    {0x7, ABSOLUTE_X}
+  };
+  static std::unordered_map<int, addressing_modes_t> modes01 = {
+    {0x0, INDIRECT_X},
+    {0x1, ZERO_PAGE},
+    {0x2, IMMEDIATE},
+    {0x3, ABSOLUTE},
+    {0x4, INDIRECT_Y},
+    {0x5, ZERO_PAGE_X},
+    {0x6, ABSOLUTE_Y},
+    {0x7, ABSOLUTE_X}
+  };
+  static std::unordered_map<int, addressing_modes_t> modes00 = {
+    {0x0, IMMEDIATE},
+    {0x1, ZERO_PAGE},
+    {0x3, ABSOLUTE},
+    {0x5, ZERO_PAGE_X},
+    {0x7, ABSOLUTE_X}
+  };
+  const uint8_t type_mask = 0x3;
+  const uint8_t mode_mask = 0x1c;
+  /* this is done to check which type of opcode
+   * we're dealing with as there's 4 different ways to decode it*/
+  const uint8_t type = opcode & type_mask;
+  const uint8_t mode = (opcode & mode_mask) >> 2;
 
   /* TODO make rules for when you're trying to get access to an addressing mode
    * that doesn't exist for the given instruction for now it assumes everything
    * has a respective addressing mode */
-	switch (type) {
-	case 0x0:
-		return modes00[mode];
-	case 0x1:
-		return modes01[mode];
-	case 0x2:
-		return modes10[mode];
-	default:
-		return UNKNOWN;
-	}
+  switch (type) {
+  case 0x0:
+    return modes00[mode];
+  case 0x1:
+    return modes01[mode];
+  case 0x2:
+    return modes10[mode];
+  default:
+    return UNKNOWN;
+  }
 }
 
 static const char *print_addressingmode (addressing_modes_t mode)
 {
-	const char * const modes[] = {
-		"IMPLICT",
-		"ACCUMULATOR",
-		"IMMEDIATE",
-		"ZERO_PAGE",
-		"ZERO_PAGE_X",
-		"ZERO_PAGE_Y",
-		"RELATIVE",
-		"IMPLIED",
-		"ABSOLUTE",
-		"ABSOLUTE_X",
-		"ABSOLUTE_Y",
-		"INDIRECT",
-		"INDIRECT_X",
-		"INDIRECT_Y",
-		"UNKNOWN"
-	};
+  const char * const modes[] = {
+    "IMPLICT",
+    "ACCUMULATOR",
+    "IMMEDIATE",
+    "ZERO_PAGE",
+    "ZERO_PAGE_X",
+    "ZERO_PAGE_Y",
+    "RELATIVE",
+    "IMPLIED",
+    "ABSOLUTE",
+    "ABSOLUTE_X",
+    "ABSOLUTE_Y",
+    "INDIRECT",
+    "INDIRECT_X",
+    "INDIRECT_Y",
+    "UNKNOWN"
+  };
+  __print_addressingmode(modes[mode]);
   return modes[mode];
 }
 
 /* TODO add tests for this and decode addressing mode */
 static bool compare (uint8_t opcode)
 {
-	uint8_t compare_to = (opcode & 0x20) >> 5;
-	/* we need to get the first two bytes which decides which register to compare */
-	switch ((opcode & 0xc0) >> 6) {
-	case 0x0:
-		return get_flag(NEGATIVE) == compare_to;
-	case 0x1:
-		return get_flag(OVERFLOW) == compare_to;
-	case 0x2:
-		return get_flag(CARRY) == compare_to;
-	case 0x3:
-		return get_flag(ZERO) == compare_to;
-	}
+  uint8_t compare_to = (opcode & 0x20) >> 5;
+  /* we need to get the first two bytes which decides which register to compare */
+  switch ((opcode & 0xc0) >> 6) {
+  case 0x0:
+    return get_flag(NEGATIVE) == compare_to;
+  case 0x1:
+    return get_flag(OVERFLOW) == compare_to;
+  case 0x2:
+    return get_flag(CARRY) == compare_to;
+  case 0x3:
+    return get_flag(ZERO) == compare_to;
+  }
   return false;
 }
+
+
+void ADC(addressing_modes_t addressing_mode) {
+  uint8_t value = read_byte();
+
+}
+void AND(addressing_modes_t addressing_mode) {}
+void ASL(addressing_modes_t addressing_mode) {}
+void BCC(addressing_modes_t addressing_mode) {}
+void BCS(addressing_modes_t addressing_mode) {}
+void BEQ(addressing_modes_t addressing_mode) {}
+void BIT(addressing_modes_t addressing_mode) {}
+void BMI(addressing_modes_t addressing_mode) {}
+void BNE(addressing_modes_t addressing_mode) {}
+void BPL(addressing_modes_t addressing_mode) {}
+void BRK(addressing_modes_t addressing_mode) {}
+void BVC(addressing_modes_t addressing_mode) {}
+void BVS(addressing_modes_t addressing_mode) {}
+void CLC(addressing_modes_t addressing_mode) {}
+void CLD(addressing_modes_t addressing_mode) {}
+void CLI(addressing_modes_t addressing_mode) {}
+void CLV(addressing_modes_t addressing_mode) {}
+void CMP(addressing_modes_t addressing_mode) {}
+void CPX(addressing_modes_t addressing_mode) {}
+void CPY(addressing_modes_t addressing_mode) {}
+void DEC(addressing_modes_t addressing_mode) {}
+void DEX(addressing_modes_t addressing_mode) {}
+void DEY(addressing_modes_t addressing_mode) {}
+void EOR(addressing_modes_t addressing_mode) {}
+void INC(addressing_modes_t addressing_mode) {}
+void INX(addressing_modes_t addressing_mode) {}
+void INY(addressing_modes_t addressing_mode) {}
+void JMP(addressing_modes_t addressing_mode) {}
+void JSR(addressing_modes_t addressing_mode) {}
+void LDA(addressing_modes_t addressing_mode) {}
+void LDX(addressing_modes_t addressing_mode) {}
+void LDY(addressing_modes_t addressing_mode) {}
+void LSR(addressing_modes_t addressing_mode) {}
+void NOP(addressing_modes_t addressing_mode) {}
+void ORA(addressing_modes_t addressing_mode) {}
+void PHA(addressing_modes_t addressing_mode) {}
+void PHP(addressing_modes_t addressing_mode) {}
+void PLA(addressing_modes_t addressing_mode) {}
+void PLP(addressing_modes_t addressing_mode) {}
+void ROL(addressing_modes_t addressing_mode) {}
+void ROR(addressing_modes_t addressing_mode) {}
+void RTI(addressing_modes_t addressing_mode) {}
+void RTS(addressing_modes_t addressing_mode) {}
+void SBC(addressing_modes_t addressing_mode) {}
+void SEC(addressing_modes_t addressing_mode) {}
+void SED(addressing_modes_t addressing_mode) {}
+void SEI(addressing_modes_t addressing_mode) {}
+void STA(addressing_modes_t addressing_mode) {}
+void STX(addressing_modes_t addressing_mode) {}
+void STY(addressing_modes_t addressing_mode) {}
+void TAX(addressing_modes_t addressing_mode) {}
+void TAY(addressing_modes_t addressing_mode) {}
+void TSX(addressing_modes_t addressing_mode) {}
+void TXA(addressing_modes_t addressing_mode) {}
+void TXS(addressing_modes_t addressing_mode) {}
+void TYA(addressing_modes_t addressing_mode) {}
