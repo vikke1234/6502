@@ -239,7 +239,11 @@ void AND(addressing_modes_t addressing_mode) {
   set_flags(affected, 2);
 }
 
-void ASL(addressing_modes_t addressing_mode) {}
+void ASL(addressing_modes_t addressing_mode) {
+  flags_t affected[] = {ZERO, CARRY, NEGATIVE};
+  registers.accumulator <<= 1;
+  set_flags(affected, 3);
+}
 
 void BCC(addressing_modes_t addressing_mode) {}
 void BCS(addressing_modes_t addressing_mode) {}
@@ -251,10 +255,23 @@ void BPL(addressing_modes_t addressing_mode) {}
 void BRK(addressing_modes_t addressing_mode) {}
 void BVC(addressing_modes_t addressing_mode) {}
 void BVS(addressing_modes_t addressing_mode) {}
-void CLC(addressing_modes_t addressing_mode) {}
-void CLD(addressing_modes_t addressing_mode) {}
-void CLI(addressing_modes_t addressing_mode) {}
-void CLV(addressing_modes_t addressing_mode) {}
+
+void CLC(addressing_modes_t addressing_mode) {
+  set_flag(CARRY, false);
+}
+
+void CLD(addressing_modes_t addressing_mode) {
+  set_flag(DECIMAL, false);
+}
+
+void CLI(addressing_modes_t addressing_mode) {
+  set_flag(INTERRUPT, false);
+}
+
+void CLV(addressing_modes_t addressing_mode) {
+  set_flag(OVERFLOW, false);
+}
+
 void CMP(addressing_modes_t addressing_mode) {}
 void CPX(addressing_modes_t addressing_mode) {}
 void CPY(addressing_modes_t addressing_mode) {}
