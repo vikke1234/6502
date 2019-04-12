@@ -68,6 +68,14 @@ static const char *print_addressingmode (addressing_modes_t mode);
 static inline void set_flags(flags_t flag, bool b);
 
 /**
+ * @brief takes an array of flags and checks for whether they should be set or not
+ * @param flags array of flags to be checked
+ * @param n amount of flags
+ */
+
+static void set_flags(flags_t *flags, int n);
+
+/**
  * @brief gets a given flag, 1 or 0
  * @param flag
  */
@@ -76,7 +84,7 @@ static inline uint8_t get_flag(flags_t flag);
 
 /**
  * @brief reads 2 little endian bytes and combines them into a 16bit unsigned
- * assumes that thereemacs's atleast 2 bytes to read, note increment PC
+ * assumes that thereemacs's atleast 2 bytes to read, note increment PC by 2
  */
 static inline uint16_t read_word();
 
