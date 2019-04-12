@@ -1,4 +1,5 @@
 #include "../headers/cpu.h"
+#include <stdarg.h>
 #include <limits.h>
 #include <string.h>
 #include <stdio.h>
@@ -9,6 +10,12 @@
 #else
 #define __print_addressingmode(v)
 #endif
+
+/* TODO:
+ * 1. make it so you can just make a list of flags to check for and it sets them
+ * 2. maybe remove addressing mode from instructions and move calculation to a separate function where it reads everything etc
+ * 3. maybe move set_flags from per instruction to each instruction returns a list of affected registers and call set_flags from interpret_opcode
+ */
 
 typedef void (*instruction_pointer)(addressing_modes_t);
 
@@ -73,10 +80,36 @@ extern void interpret_opcode(uint8_t opcode)
   instructions[opcode](mode);
 }
 
-static inline void set_flags (flags_t flag, bool b)
+static inline void set_flag(flags_t flag, bool b)
 {
   if (get_flag(flag) != b) {
     registers.status ^= flag;
+  }
+}
+
+static void set_flags(flags_t *flags, int n) {
+  for(int i = 0; i < n; i++) {
+    switch(flags[i]) {
+    case OVERFLOW:
+      break;
+    case ZERO:
+      if (registers.accumulator == 0) set_flag(ZERO, true);
+      break;
+    case INTERRUPT:
+      /* TODO */
+      break;
+    case DECIMAL:
+      /* TODO */
+      break;
+    case CARRY:
+      if (registers.accumulator > CHAR_MAX) set_flag(OVERFLOW, true);
+      break;
+    case BFLAG:
+      break;
+    case NEGATIVE:
+      /* TODO */
+      break;
+    }
   }
 }
 
@@ -148,6 +181,9 @@ static addressing_modes_t decode_addressing_mode(uint8_t opcode)
   }
 }
 
+/* TODO */
+static uint8_t get_value(void) {}
+
 static const char *print_addressingmode (addressing_modes_t mode)
 {
   const char * const modes[] = {
@@ -192,10 +228,19 @@ static bool compare (uint8_t opcode)
 
 void ADC(addressing_modes_t addressing_mode) {
   uint8_t value = read_byte();
-
+  flags_t affected[] = {CARRY, ZERO, OVERFLOW, NEGATIVE};
+  registers.accumulator += value + get_flag(CARRY);
+  set_flags(affected, 4);
 }
-void AND(addressing_modes_t addressing_mode) {}
+
+void AND(addressing_modes_t addressing_mode) {
+  flags_t affected[] = {ZERO, NEGATIVE};
+  registers.accumulator &= read_byte();
+  set_flags(affected, 2);
+}
+
 void ASL(addressing_modes_t addressing_mode) {}
+
 void BCC(addressing_modes_t addressing_mode) {}
 void BCS(addressing_modes_t addressing_mode) {}
 void BEQ(addressing_modes_t addressing_mode) {}
