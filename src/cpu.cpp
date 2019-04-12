@@ -272,16 +272,47 @@ void CLV(addressing_modes_t addressing_mode) {
   set_flag(OVERFLOW, false);
 }
 
-void CMP(addressing_modes_t addressing_mode) {}
+void CMP(addressing_modes_t addressing_mode) {
+  /* TODO */
+  unsigned char compare_to = read_byte();
+}
 void CPX(addressing_modes_t addressing_mode) {}
 void CPY(addressing_modes_t addressing_mode) {}
-void DEC(addressing_modes_t addressing_mode) {}
-void DEX(addressing_modes_t addressing_mode) {}
-void DEY(addressing_modes_t addressing_mode) {}
-void EOR(addressing_modes_t addressing_mode) {}
+
+void DEC(addressing_modes_t addressing_mode) {
+  
+}
+
+void DEX(addressing_modes_t addressing_mode) {
+  flags_t affected[] = {ZERO, NEGATIVE};
+  registers.x--;
+  set_flags(affected, 2);
+}
+
+void DEY(addressing_modes_t addressing_mode) {
+  flags_t affected[] = {ZERO, NEGATIVE};
+  registers.y--;
+  set_flags(affected, 2);
+}
+
+void EOR(addressing_modes_t addressing_mode) {
+  flags_t affected[] = {ZERO, NEGATIVE};
+  registers.accumulator ^= read_byte();
+  set_flags(affected, 2);
+}
+
 void INC(addressing_modes_t addressing_mode) {}
-void INX(addressing_modes_t addressing_mode) {}
-void INY(addressing_modes_t addressing_mode) {}
+void INX(addressing_modes_t addressing_mode) {
+  flags_t affected[] = {ZERO, NEGATIVE};
+  registers.x++;
+  set_flags(affected, 2);
+}
+
+void INY(addressing_modes_t addressing_mode) {
+  flags_t affected[] = {ZERO, NEGATIVE};
+  registers.x++;
+  set_flags(affected, 2);
+}
 void JMP(addressing_modes_t addressing_mode) {}
 void JSR(addressing_modes_t addressing_mode) {}
 void LDA(addressing_modes_t addressing_mode) {}
