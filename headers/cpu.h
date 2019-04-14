@@ -110,9 +110,7 @@ static addressing_modes_t decode_addressing_mode(uint8_t opcode);
  */
 static bool compare (uint8_t opcode);
 
-/* TODO: add small documentation on theese, maybe not and just link documentation, maybe remove static?
- * also think how to get theese to a map in main.cpp, theese might be removed,
- * they'll stay for now untill I decide how I should implement a jump table, if I even do */
+/* TODO: add small documentation on theese, maybe not and just link documentation */
 
 void ADC(addressing_modes_t addressing_mode);
 void AND(addressing_modes_t addressing_mode);

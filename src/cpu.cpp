@@ -1,10 +1,8 @@
 #include "../headers/cpu.h"
-#include <stdarg.h>
 #include <limits.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 #include <unordered_map>
-
 #ifdef DEBUG
 #define __print_addressingmode(v) printf("%s", (v))
 #else
@@ -13,87 +11,118 @@
 
 /* TODO:
  * 1. make it so you can just make a list of flags to check for and it sets them
- * 2. maybe remove addressing mode from instructions and move calculation to a separate function where it reads everything etc
- * 3. maybe move set_flags from per instruction to each instruction returns a list of affected registers and call set_flags from interpret_opcode
+ * 2. maybe remove addressing mode from instructions and move calculation to a
+ * separate function where it reads
+ * everythttps://de.pcpartpicker.com/product/vYp323/cougar-mx330-atx-mid-tower-case-mx330hing
+ * etc
+ * 3. maybe move set_flags from per instruction to each instruction returns a
+ * list of affected registers and call set_flags from interpret_opcode
  */
 
 typedef void (*instruction_pointer)(addressing_modes_t);
 
 static processor_registers registers;
-static memory_map _memory; /* for "easier" access to the different parts of memory */
+/* for "easier" access to the different parts of memory */
+static memory_map _memory;
+/* this will be rewritten once the cpu is done */
+extern void initialize_cpu(const char *data, size_t size) {
+  registers._sp = 0;
+  registers.accumulator = 0;
+  registers.pc = 0;
+  registers.status = 0;
+  registers.x = 0;
+  registers.y = 0;
 
-/* TODO: make pc increments reasonable */
-extern void interpret_opcode(uint8_t opcode)
-{
+  memcpy(_memory.rom, data, size);
+}
+
+extern void interpret_opcode(uint8_t opcode) {
   /* figure out how to reduce the amount of shit in this? */
-  static std::unordered_map<unsigned char, void (*)(addressing_modes_t)> instructions = {
-    {0x69, &ADC},{0x65, &ADC},{0x75, &ADC},{0x6D, &ADC},{0x7D, &ADC},{0x79, &ADC}, {0x61, &ADC},{0x71, &ADC},
+  static std::unordered_map<unsigned char, void (*)(addressing_modes_t)>
+      instructions = {
+          {0x69, &ADC}, {0x65, &ADC}, {0x75, &ADC}, {0x6D, &ADC}, {0x7D, &ADC},
+          {0x79, &ADC}, {0x61, &ADC}, {0x71, &ADC},
 
-    {0x29, &AND}, {0x25, &AND}, {0x35, &AND}, {0x2D, &AND}, {0x3D, &AND}, {0x39, &AND}, {0x21, &AND},
-    {0x31, &AND},
+          {0x29, &AND}, {0x25, &AND}, {0x35, &AND}, {0x2D, &AND}, {0x3D, &AND},
+          {0x39, &AND}, {0x21, &AND}, {0x31, &AND},
 
-    {0x0A, &ASL}, {0x06, &ASL}, {0x16, &ASL}, {0x0E, &ASL}, {0x1E, &ASL},
+          {0x0A, &ASL}, {0x06, &ASL}, {0x16, &ASL}, {0x0E, &ASL}, {0x1E, &ASL},
 
-    {0x90, &BCC}, {0xB0, &BCS}, {0xF0, &BEQ},
+          {0x90, &BCC}, {0xB0, &BCS}, {0xF0, &BEQ},
 
-    {0x24, &BIT}, {0x2C, &BIT},
+          {0x24, &BIT}, {0x2C, &BIT},
 
-    {0x30, &BMI}, {0xD0, &BNE}, {0x10, &BPL}, {0x00, &BRK}, {0x50, &BVC}, {0x70, &BVS},
+          {0x30, &BMI}, {0xD0, &BNE}, {0x10, &BPL}, {0x00, &BRK}, {0x50, &BVC},
+          {0x70, &BVS},
 
-    {0x18, &CLC}, {0xD8, &CLD}, {0x58, &CLI}, {0xB8, &CLV},
+          {0x18, &CLC}, {0xD8, &CLD}, {0x58, &CLI}, {0xB8, &CLV},
 
-    {0xC9, &CMP}, {0xC5, &CMP}, {0xD5, &CMP}, {0xCD, &CMP}, {0xDD, &CMP}, {0xD9, &CMP}, {0xC1, &CMP}, {0xD1, &CMP},
+          {0xC9, &CMP}, {0xC5, &CMP}, {0xD5, &CMP}, {0xCD, &CMP}, {0xDD, &CMP},
+          {0xD9, &CMP}, {0xC1, &CMP}, {0xD1, &CMP},
 
-    {0xE0, &CPX}, {0xE4, &CPX}, {0xEC, &CPX}, {0xC0, &CPY}, {0xC4, &CPY}, {0xCC, &CPY},
+          {0xE0, &CPX}, {0xE4, &CPX}, {0xEC, &CPX}, {0xC0, &CPY}, {0xC4, &CPY},
+          {0xCC, &CPY},
 
-    {0xC6, &DEC}, {0xD6, &DEC}, {0xCE, &DEC}, {0xDE, &DEC}, {0xCA, &DEX}, {0x88, &DEY}, 
+          {0xC6, &DEC}, {0xD6, &DEC}, {0xCE, &DEC}, {0xDE, &DEC}, {0xCA, &DEX},
+          {0x88, &DEY},
 
-    {0x49, &EOR}, {0x45, &EOR}, {0x55, &EOR}, {0x4D, &EOR}, {0x5D, &EOR}, {0x59, &EOR}, {0x41, &EOR}, {0x51, &EOR},
+          {0x49, &EOR}, {0x45, &EOR}, {0x55, &EOR}, {0x4D, &EOR}, {0x5D, &EOR},
+          {0x59, &EOR}, {0x41, &EOR}, {0x51, &EOR},
 
-    {0xE6, &INC}, {0xF6, &INC}, {0xEE, &INC}, {0xFE, &INC}, {0xE8, &INX}, {0xC8, &INY}, {0x4C, &JMP}, {0x6C, &JMP}, {0x20, &JSR},
+          {0xE6, &INC}, {0xF6, &INC}, {0xEE, &INC}, {0xFE, &INC}, {0xE8, &INX},
+          {0xC8, &INY}, {0x4C, &JMP}, {0x6C, &JMP}, {0x20, &JSR},
 
-    {0xA9, &LDA}, {0xA5, &LDA}, {0xB5, &LDA}, {0xAD, &LDA}, {0xBD, &LDA}, {0xB9, &LDA}, {0xA1, &LDA}, {0xB1, &LDA},
+          {0xA9, &LDA}, {0xA5, &LDA}, {0xB5, &LDA}, {0xAD, &LDA}, {0xBD, &LDA},
+          {0xB9, &LDA}, {0xA1, &LDA}, {0xB1, &LDA},
 
-    {0xA2, &LDX}, {0xA6, &LDX}, {0xB6, &LDX}, {0xAE, &LDX}, {0xBE, &LDX},
-    {0xA0, &LDY}, {0xA4, &LDY}, {0xB4, &LDY}, {0xAC, &LDY}, {0xBC, &LDY},
+          {0xA2, &LDX}, {0xA6, &LDX}, {0xB6, &LDX}, {0xAE, &LDX}, {0xBE, &LDX},
+          {0xA0, &LDY}, {0xA4, &LDY}, {0xB4, &LDY}, {0xAC, &LDY}, {0xBC, &LDY},
 
-    {0x4A, &LSR}, {0x46, &LSR}, {0x56, &LSR}, {0x4E, &LSR}, {0x5E, &LSR},
+          {0x4A, &LSR}, {0x46, &LSR}, {0x56, &LSR}, {0x4E, &LSR}, {0x5E, &LSR},
 
-    {0xEA, &NOP},
+          {0xEA, &NOP},
 
-    {0x05, &ORA}, {0x09, &ORA}, {0x15, &ORA}, {0x0D, &ORA}, {0x1D, &ORA}, {0x19, &ORA}, {0x01, &ORA}, {0x11, &ORA},
+          {0x05, &ORA}, {0x09, &ORA}, {0x15, &ORA}, {0x0D, &ORA}, {0x1D, &ORA},
+          {0x19, &ORA}, {0x01, &ORA}, {0x11, &ORA},
 
-    {0x48, &PHA}, {0x08, &PHP}, {0x69, &PLA}, {0x28, &PLP},
+          {0x48, &PHA}, {0x08, &PHP}, {0x69, &PLA}, {0x28, &PLP},
 
-    {0x2A, &ROL}, {0x26, &ROL}, {0x36, &ROL}, {0x2e, &ROL}, {0x3e, &ROL},
+          {0x2A, &ROL}, {0x26, &ROL}, {0x36, &ROL}, {0x2e, &ROL}, {0x3e, &ROL},
 
-    {0x6a, &ROR}, {0x66, &ROR}, {0x76, &ROR}, {0x6e, &ROR}, {0x7e, &ROR},
+          {0x6a, &ROR}, {0x66, &ROR}, {0x76, &ROR}, {0x6e, &ROR}, {0x7e, &ROR},
 
-    {0x40, &RTI}, {0x60, &RTS},
-    {0xE9, &SBC}, {0xE5, &SBC}, {0xF5, &SBC}, {0xED, &SBC}, {0xFD, &SBC}, {0xF9, &SBC}, {0xE1, &SBC}, {0xF1, &SBC},
+          {0x40, &RTI}, {0x60, &RTS}, {0xE9, &SBC}, {0xE5, &SBC}, {0xF5, &SBC},
+          {0xED, &SBC}, {0xFD, &SBC}, {0xF9, &SBC}, {0xE1, &SBC}, {0xF1, &SBC},
 
-    {0x38, &SEC}, {0xF8, &SED}, {0x78, &SEI}
-  };
+          {0x38, &SEC}, {0xF8, &SED}, {0x78, &SEI}};
 
-  static unsigned char *memory = (unsigned char *) &_memory;
+  static unsigned char *memory = (unsigned char *)&_memory;
   addressing_modes_t mode = decode_addressing_mode(opcode);
   instructions[opcode](mode);
 }
 
-static inline void set_flag(flags_t flag, bool b)
-{
+static inline void push_to_stack(unsigned char value) {
+  registers.stack_pointer[registers._sp++] = value;
+}
+
+static inline unsigned char get_from_stack(void) {
+  return registers.stack_pointer[registers._sp--];
+}
+
+static inline void set_flag(flags_t flag, bool b) {
   if (get_flag(flag) != b) {
     registers.status ^= flag;
   }
 }
 
 static void set_flags(flags_t *flags, int n) {
-  for(int i = 0; i < n; i++) {
-    switch(flags[i]) {
+  for (int i = 0; i < n; i++) {
+    switch (flags[i]) {
     case OVERFLOW:
       break;
     case ZERO:
-      if (registers.accumulator == 0) set_flag(ZERO, true);
+      if (registers.accumulator == 0)
+        set_flag(ZERO, true);
       break;
     case INTERRUPT:
       /* TODO */
@@ -102,7 +131,8 @@ static void set_flags(flags_t *flags, int n) {
       /* TODO */
       break;
     case CARRY:
-      if (registers.accumulator > CHAR_MAX) set_flag(OVERFLOW, true);
+      if (registers.accumulator > CHAR_MAX)
+        set_flag(OVERFLOW, true);
       break;
     case BFLAG:
       break;
