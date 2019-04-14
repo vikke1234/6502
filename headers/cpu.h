@@ -47,11 +47,14 @@ typedef struct {
 typedef struct {
   uint16_t pc;
   uint8_t accumulator;
-  uint8_t stack_pointer; /* this probably has to be an array */
+  uint8_t stack_pointer[256];
+  uint8_t _sp;
   uint8_t x, y;
-  uint8_t status;          /** NVss DIZC, @see FLAGS */
+  uint8_t status;          /** NVsB DIZC, @see FLAGS */
 } processor_registers;
 
+/* TODO maybe make like a "cputype" which contains information
+ * about the instruction that was executed */
 
 /**
  * @brief prints which addressing mode is currently used
