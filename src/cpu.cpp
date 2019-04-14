@@ -143,52 +143,39 @@ static void set_flags(flags_t *flags, int n) {
   }
 }
 
-static inline uint8_t get_flag(flags_t flag)
-{
-  return !!(registers.status & flag); /* !! to turn it into a 1 or 0 to not require shifting and looking up the power of two it is */
+static inline uint8_t get_flag(flags_t flag) {
+  return !!(registers.status &
+            flag); /* !! to turn it into a 1 or 0 to not require shifting and
+                      looking up the power of two it is */
 }
 
-static inline uint16_t read_word()
-{
-  uint16_t value = ((_memory.rom[registers.pc + 1] << 8) | _memory.rom[registers.pc]);
+static inline uint16_t read_word() {
+  uint16_t value =
+      ((_memory.rom[registers.pc + 1] << 8) | _memory.rom[registers.pc]);
   registers.pc += 2;
   return value;
 }
 
-static inline uint8_t read_byte()
-{
+static inline uint8_t read_byte() {
   uint8_t value = _memory.rom[registers.pc + 1];
   registers.pc++;
   return value;
 }
 
-static addressing_modes_t decode_addressing_mode(uint8_t opcode)
-{
+static addressing_modes_t decode_addressing_mode(uint8_t opcode) {
   static std::unordered_map<int, addressing_modes_t> modes10 = {
-    {0x0, IMMEDIATE},
-    {0x1, ZERO_PAGE},
-    {0x2, ACCUMULATOR},
-    {0x3, ABSOLUTE},
-    {0x5, ZERO_PAGE_X},
-    {0x7, ABSOLUTE_X}
-  };
+      {0x0, IMMEDIATE}, {0x1, ZERO_PAGE},   {0x2, ACCUMULATOR},
+      {0x3, ABSOLUTE},  {0x5, ZERO_PAGE_X}, {0x7, ABSOLUTE_X}};
   static std::unordered_map<int, addressing_modes_t> modes01 = {
-    {0x0, INDIRECT_X},
-    {0x1, ZERO_PAGE},
-    {0x2, IMMEDIATE},
-    {0x3, ABSOLUTE},
-    {0x4, INDIRECT_Y},
-    {0x5, ZERO_PAGE_X},
-    {0x6, ABSOLUTE_Y},
-    {0x7, ABSOLUTE_X}
-  };
+      {0x0, INDIRECT_X}, {0x1, ZERO_PAGE},  {0x2, IMMEDIATE},
+      {0x3, ABSOLUTE},   {0x4, INDIRECT_Y}, {0x5, ZERO_PAGE_X},
+      {0x6, ABSOLUTE_Y}, {0x7, ABSOLUTE_X}};
   static std::unordered_map<int, addressing_modes_t> modes00 = {
-    {0x0, IMMEDIATE},
-    {0x1, ZERO_PAGE},
-    {0x3, ABSOLUTE},
-    {0x5, ZERO_PAGE_X},
-    {0x7, ABSOLUTE_X}
-  };
+      {0x0, IMMEDIATE},
+      {0x1, ZERO_PAGE},
+      {0x3, ABSOLUTE},
+      {0x5, ZERO_PAGE_X},
+      {0x7, ABSOLUTE_X}};
   const uint8_t type_mask = 0x3;
   const uint8_t mode_mask = 0x1c;
   /* this is done to check which type of opcode
@@ -214,34 +201,20 @@ static addressing_modes_t decode_addressing_mode(uint8_t opcode)
 /* TODO */
 static uint8_t get_value(void) {}
 
-static const char *print_addressingmode (addressing_modes_t mode)
-{
-  const char * const modes[] = {
-    "IMPLICT",
-    "ACCUMULATOR",
-    "IMMEDIATE",
-    "ZERO_PAGE",
-    "ZERO_PAGE_X",
-    "ZERO_PAGE_Y",
-    "RELATIVE",
-    "IMPLIED",
-    "ABSOLUTE",
-    "ABSOLUTE_X",
-    "ABSOLUTE_Y",
-    "INDIRECT",
-    "INDIRECT_X",
-    "INDIRECT_Y",
-    "UNKNOWN"
-  };
+static const char *print_addressingmode(addressing_modes_t mode) {
+  const char *const modes[] = {
+      "IMPLICT",     "ACCUMULATOR", "IMMEDIATE",  "ZERO_PAGE",  "ZERO_PAGE_X",
+      "ZERO_PAGE_Y", "RELATIVE",    "IMPLIED",    "ABSOLUTE",   "ABSOLUTE_X",
+      "ABSOLUTE_Y",  "INDIRECT",    "INDIRECT_X", "INDIRECT_Y", "UNKNOWN"};
   __print_addressingmode(modes[mode]);
   return modes[mode];
 }
 
 /* TODO add tests for this and decode addressing mode */
-static bool compare (uint8_t opcode)
-{
+static bool compare(uint8_t opcode) {
   uint8_t compare_to = (opcode & 0x20) >> 5;
-  /* we need to get the first two bytes which decides which register to compare */
+  /* we need to get the first two bytes which decides which register to compare
+   */
   switch ((opcode & 0xc0) >> 6) {
   case 0x0:
     return get_flag(NEGATIVE) == compare_to;
@@ -254,7 +227,6 @@ static bool compare (uint8_t opcode)
   }
   return false;
 }
-
 
 void ADC(addressing_modes_t addressing_mode) {
   uint8_t value = read_byte();
@@ -286,21 +258,13 @@ void BRK(addressing_modes_t addressing_mode) {}
 void BVC(addressing_modes_t addressing_mode) {}
 void BVS(addressing_modes_t addressing_mode) {}
 
-void CLC(addressing_modes_t addressing_mode) {
-  set_flag(CARRY, false);
-}
+void CLC(addressing_modes_t addressing_mode) { set_flag(CARRY, false); }
 
-void CLD(addressing_modes_t addressing_mode) {
-  set_flag(DECIMAL, false);
-}
+void CLD(addressing_modes_t addressing_mode) { set_flag(DECIMAL, false); }
 
-void CLI(addressing_modes_t addressing_mode) {
-  set_flag(INTERRUPT, false);
-}
+void CLI(addressing_modes_t addressing_mode) { set_flag(INTERRUPT, false); }
 
-void CLV(addressing_modes_t addressing_mode) {
-  set_flag(OVERFLOW, false);
-}
+void CLV(addressing_modes_t addressing_mode) { set_flag(OVERFLOW, false); }
 
 void CMP(addressing_modes_t addressing_mode) {
   /* TODO */
@@ -309,9 +273,7 @@ void CMP(addressing_modes_t addressing_mode) {
 void CPX(addressing_modes_t addressing_mode) {}
 void CPY(addressing_modes_t addressing_mode) {}
 
-void DEC(addressing_modes_t addressing_mode) {
-  
-}
+void DEC(addressing_modes_t addressing_mode) {}
 
 void DEX(addressing_modes_t addressing_mode) {
   flags_t affected[] = {ZERO, NEGATIVE};
