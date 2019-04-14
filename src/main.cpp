@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
 	data[1] = 0x2d;
 	data[2] = 0x0e;
 
+  initialize_cpu(data, sizeof(data));
 	for (int i = 0; i < 3; i++) {
 		interpret_opcode(data[i]);
 	}

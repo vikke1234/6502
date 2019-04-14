@@ -305,19 +305,60 @@ void INY(addressing_modes_t addressing_mode) {
   registers.x++;
   set_flags(affected, 2);
 }
-void JMP(addressing_modes_t addressing_mode) {}
-void JSR(addressing_modes_t addressing_mode) {}
-void LDA(addressing_modes_t addressing_mode) {}
-void LDX(addressing_modes_t addressing_mode) {}
-void LDY(addressing_modes_t addressing_mode) {}
+
+void JMP(addressing_modes_t addressing_mode) { registers.pc = read_word(); }
+
+void JSR(addressing_modes_t addressing_mode) {
+  registers.stack_pointer[registers._sp] = registers.pc;
+  registers.pc = read_word();
+}
+
+void LDA(addressing_modes_t addressing_mode) {
+  flags_t affected[] = {ZERO, NEGATIVE};
+  registers.accumulator = read_byte();
+  set_flags(affected, 2);
+}
+void LDX(addressing_modes_t addressing_mode) {
+  flags_t affected[] = {ZERO, NEGATIVE};
+  registers.x = read_byte();
+  set_flags(affected, 2);
+}
+void LDY(addressing_modes_t addressing_mode) {
+  flags_t affected[] = {ZERO, NEGATIVE};
+  registers.y = read_byte();
+  set_flags(affected, 2);
+}
+
 void LSR(addressing_modes_t addressing_mode) {}
-void NOP(addressing_modes_t addressing_mode) {}
-void ORA(addressing_modes_t addressing_mode) {}
-void PHA(addressing_modes_t addressing_mode) {}
-void PHP(addressing_modes_t addressing_mode) {}
-void PLA(addressing_modes_t addressing_mode) {}
-void PLP(addressing_modes_t addressing_mode) {}
-void ROL(addressing_modes_t addressing_mode) {}
+void NOP(addressing_modes_t addressing_mode) { registers.pc++; }
+void ORA(addressing_modes_t addressing_mode) {
+  flags_t affected[] = {ZERO, NEGATIVE};
+  registers.accumulator |= read_byte();
+  set_flags(affected, 2);
+}
+
+void PHA(addressing_modes_t addressing_mode) { push_to_stack(read_byte()); }
+
+void PHP(addressing_modes_t addressing_mode) {
+  push_to_stack(registers.status);
+}
+
+void PLA(addressing_modes_t addressing_mode) {
+  registers.accumulator = get_from_stack();
+}
+
+void PLP(addressing_modes_t addressing_mode) {
+  registers.status = get_from_stack();
+}
+
+void ROL(addressing_modes_t addressing_mode) {
+  unsigned char value = read_word();
+  /* TODO make sure this works, very simple to test*/
+  __asm__ volatile("ror $1, %%eax\n\t"
+                   : "=a"(value)
+                   : "a"(value)
+                   : "memory", "cc");
+}
 void ROR(addressing_modes_t addressing_mode) {}
 void RTI(addressing_modes_t addressing_mode) {}
 void RTS(addressing_modes_t addressing_mode) {}
