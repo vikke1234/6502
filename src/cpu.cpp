@@ -37,7 +37,7 @@ extern void initialize_cpu(const unsigned char *data, size_t size) {
   memcpy(_memory.rom, data, size);
 }
 
-extern void interpret_opcode(uint8_t opcode) {
+extern void interpret_opcode(void) {
   /* figure out how to reduce the amount of shit in this? */
   static std::unordered_map<unsigned char, void (*)(addressing_modes_t)>
       instructions = {
@@ -97,6 +97,7 @@ extern void interpret_opcode(uint8_t opcode) {
 
           {0x38, &SEC}, {0xF8, &SED}, {0x78, &SEI}};
 
+  unsigned char opcode = read_byte();
   static unsigned char *memory = (unsigned char *)&_memory;
   addressing_modes_t mode = decode_addressing_mode(opcode);
   instructions[opcode](mode);
