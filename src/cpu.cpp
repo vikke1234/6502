@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unordered_map>
+
 #ifdef DEBUG
 #define __print_addressingmode(v) printf("%s", (v))
 #else
@@ -13,8 +14,7 @@
  * 1. make it so you can just make a list of flags to check for and it sets them
  * 2. maybe remove addressing mode from instructions and move calculation to a
  * separate function where it reads
- * everythttps://de.pcpartpicker.com/product/vYp323/cougar-mx330-atx-mid-tower-case-mx330hing
- * etc
+ * everything etc
  * 3. maybe move set_flags from per instruction to each instruction returns a
  * list of affected registers and call set_flags from interpret_opcode
  */
@@ -24,8 +24,9 @@ typedef void (*instruction_pointer)(addressing_modes_t);
 static processor_registers registers;
 /* for "easier" access to the different parts of memory */
 static memory_map _memory;
+
 /* this will be rewritten once the cpu is done */
-extern void initialize_cpu(const char *data, size_t size) {
+extern void initialize_cpu(const unsigned char *data, size_t size) {
   registers._sp = 0;
   registers.accumulator = 0;
   registers.pc = 0;

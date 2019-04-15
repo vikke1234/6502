@@ -1,8 +1,10 @@
 #ifndef CPU_H
 #define CPU_H
 #include <stdint.h>
+#include <stdlib.h>
 
-void interpret_opcode(uint8_t opcode);
+extern void interpret_opcode();
+extern void initialize_cpu(const unsigned char *data, size_t size);
 
 typedef enum {
   IMPLICT,
