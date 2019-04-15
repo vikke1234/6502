@@ -203,9 +203,6 @@ static addressing_modes_t decode_addressing_mode(uint8_t opcode) {
   }
 }
 
-/* TODO */
-static uint8_t get_value(void) {}
-
 static const char *print_addressingmode(addressing_modes_t mode) {
   const char *const modes[] = {
       "IMPLICT",     "ACCUMULATOR", "IMMEDIATE",  "ZERO_PAGE",  "ZERO_PAGE_X",
@@ -314,7 +311,7 @@ void INY(addressing_modes_t addressing_mode) {
 void JMP(addressing_modes_t addressing_mode) { registers.pc = read_word(); }
 
 void JSR(addressing_modes_t addressing_mode) {
-  registers.stack_pointer[registers._sp] = registers.pc;
+  registers.stack_pointer[registers._sp] = registers.pc - 1;
   registers.pc = read_word();
 }
 
