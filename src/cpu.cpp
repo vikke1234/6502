@@ -111,6 +111,10 @@ static inline unsigned char get_from_stack(void) {
   return registers.stack_pointer[registers._sp--];
 }
 
+static inline unsigned char peek_from_stack(void) {
+  return registers.stack_pointer[registers._sp];
+}
+
 static inline void set_flag(flags_t flag, bool b) {
   if (get_flag(flag) != b) {
     registers.status ^= flag;
@@ -159,8 +163,7 @@ static inline uint16_t read_word() {
 }
 
 static inline uint8_t read_byte() {
-  uint8_t value = _memory.rom[registers.pc + 1];
-  registers.pc++;
+  uint8_t value = _memory.rom[registers.pc++];
   return value;
 }
 
