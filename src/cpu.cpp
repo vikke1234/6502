@@ -354,26 +354,58 @@ void PLP(addressing_modes_t addressing_mode) {
 }
 
 void ROL(addressing_modes_t addressing_mode) {
-  unsigned char value = read_word();
-  /* TODO make sure this works, very simple to test*/
-  __asm__ volatile("ror $1, %%eax\n\t"
-                   : "=a"(value)
-                   : "a"(value)
-                   : "memory", "cc");
+  /* shifts the accumulator (to be changed later to support different addressing
+   * modes) by 1 */
+  registers.accumulator =
+      (registers.accumulator << 1) | (registers.accumulator >> (7));
 }
-void ROR(addressing_modes_t addressing_mode) {}
-void RTI(addressing_modes_t addressing_mode) {}
-void RTS(addressing_modes_t addressing_mode) {}
-void SBC(addressing_modes_t addressing_mode) {}
-void SEC(addressing_modes_t addressing_mode) {}
-void SED(addressing_modes_t addressing_mode) {}
-void SEI(addressing_modes_t addressing_mode) {}
+
+void ROR(addressing_modes_t addressing_mode) {
+  /* shifts the accumulator (to be changed later to support different addressing
+   * modes) by 1 */
+  registers.accumulator =
+      (registers.accumulator >> 1) | (registers.accumulator << (7));
+}
+
+void RTI(addressing_modes_t addressing_mode) {
+  registers.status = get_from_stack();
+  registers.pc++;
+}
+
+void RTS(addressing_modes_t addressing_mode) {
+  registers.pc = get_from_stack();
+  registers.pc++;
+}
+
+void SBC(addressing_modes_t addressing_mode) {
+  registers.accumulator -= read_byte() - (1 - get_flag(CARRY));
+}
+
+void SEC(addressing_modes_t addressing_mode) { set_flag(CARRY, true); }
+void SED(addressing_modes_t addressing_mode) { set_flag(DECIMAL, true); }
+void SEI(addressing_modes_t addressing_mode) { set_flag(INTERRUPT, true); }
+
 void STA(addressing_modes_t addressing_mode) {}
 void STX(addressing_modes_t addressing_mode) {}
 void STY(addressing_modes_t addressing_mode) {}
-void TAX(addressing_modes_t addressing_mode) {}
-void TAY(addressing_modes_t addressing_mode) {}
-void TSX(addressing_modes_t addressing_mode) {}
-void TXA(addressing_modes_t addressing_mode) {}
-void TXS(addressing_modes_t addressing_mode) {}
-void TYA(addressing_modes_t addressing_mode) {}
+
+void TAX(addressing_modes_t addressing_mode) {
+  flags_t affected[] = {ZERO, NEGATIVE};
+  registers.x = registers.accumulator;
+  set_flags(affected, 2);
+}
+void TAY(addressing_modes_t addressing_mode) {
+  flags_t affected[] = {ZERO, NEGATIVE};
+  registers.y = registers.accumulator;
+  set_flags(affected, 2);
+}
+void TSX(addressing_modes_t addressing_mode) {
+  registers.x = peek_from_stack();
+}
+void TXA(addressing_modes_t addressing_mode) {
+  registers.accumulator = peek_from_stack();
+}
+void TXS(addressing_modes_t addressing_mode) { push_to_stack(registers.x); }
+void TYA(addressing_modes_t addressing_mode) {
+  registers.accumulator = registers.y;
+}
