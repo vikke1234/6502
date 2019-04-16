@@ -126,7 +126,16 @@ void ADC_absolutey(void);
 void ADC_indirectx(void);
 void ADC_indirecty(void);
 
-void AND(void);
+void AND_help(uint8_t value);
+void AND_im(void);
+void AND_zero(void);
+void AND_zerox(void);
+void AND_absolute(void);
+void AND_absolutex(void);
+void AND_absolutey(void);
+void AND_indirectx(void);
+void AND_indirecty(void);
+
 void ASL(void);
 void BCC(void);
 void BCS(void);

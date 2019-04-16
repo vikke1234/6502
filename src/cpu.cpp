@@ -45,9 +45,9 @@ extern void interpret_opcode(void) {
       {0x6D, &ADC_absolute},  {0x7D, &ADC_absolutex}, {0x79, &ADC_absolutey},
       {0x61, &ADC_indirectx}, {0x71, &ADC_indirecty},
 
-      {0x29, &AND},           {0x25, &AND},           {0x35, &AND},
-      {0x2D, &AND},           {0x3D, &AND},           {0x39, &AND},
-      {0x21, &AND},           {0x31, &AND},
+      {0x29, &AND_im},        {0x25, &AND_zero},      {0x35, &AND_zerox},
+      {0x2D, &AND_absolute},  {0x3D, &AND_absolutex}, {0x39, &AND_absolutey},
+      {0x21, &AND_indirectx}, {0x31, &AND_indirecty},
 
       {0x0A, &ASL},           {0x06, &ASL},           {0x16, &ASL},
       {0x0E, &ASL},           {0x1E, &ASL},
@@ -317,10 +317,34 @@ void ADC_indirecty(void) {
 }
 /* end of ADC */
 
-void AND(void) {
+void AND_help(uint8_t value) {
   flags_t affected[] = {ZERO, NEGATIVE};
-  registers.accumulator &= read_byte();
+  registers.accumulator &= value;
   set_flags(affected, 2);
+}
+void AND_im(void) { AND_help(read_byte()); }
+
+void AND_zero(void) { AND_help(memory[read_byte()]); }
+
+void AND_zerox(void) { AND_help(memory[read_byte() + registers.x]); }
+
+void AND_absolute(void) { AND_help(memory[read_word()]); }
+
+void AND_absolutex(void) { AND_help(memory[read_word() + registers.x]); }
+
+void AND_absolutey(void) { AND_help(memory[read_word() + registers.y]); }
+
+void AND_indirectx(void) {
+  uint8_t _location = read_byte();
+  uint16_t location = read_word_at(_location + registers.x);
+  uint8_t value = read_byte_at(location);
+  AND_help(value);
+}
+
+void AND_indirecty(void) {
+  uint8_t _location = read_byte();
+  uint16_t location = read_word_at(_location);
+  uint8_t value = read_byte_at(location + registers.y);
 }
 
 void ASL(void) {
