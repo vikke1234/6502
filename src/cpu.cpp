@@ -309,8 +309,9 @@ void ADC_indirectx(void) {
 }
 
 void ADC_indirecty(void) {
-  uint8_t location = read_byte();
-  uint16_t value = read_word_at(location + registers.y);
+  uint8_t _location = read_byte();
+  uint8_t location = read_word_at(_location + registers.y);
+  uint16_t value = read_word_at(location);
 
   ADC_help(value);
 }
