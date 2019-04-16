@@ -156,15 +156,27 @@ static inline uint8_t get_flag(flags_t flag) {
 }
 
 static inline uint16_t read_word() {
-  uint16_t value =
-      ((_memory.rom[registers.pc + 1] << 8) | _memory.rom[registers.pc]);
+  uint16_t value = ((memory[registers.pc + 1] << 8) | memory[registers.pc]);
   registers.pc += 2;
   return value;
 }
 
-static inline uint8_t read_byte() {
-  uint8_t value = _memory.rom[registers.pc++];
+static inline uint16_t read_word_at(uint16_t location) {
+  uint16_t value = (memory[location + 1] << 8) | memory[location];
   return value;
+}
+
+static inline uint8_t read_byte_at(uint16_t location) {
+  uint8_t value = memory[location];
+  return value;
+}
+static inline uint8_t read_byte() {
+  uint8_t value = memory[registers.pc++];
+  return value;
+}
+
+static inline void write_byte(uint8_t value, uint16_t location) {
+  memory[location] = value;
 }
 
 static addressing_modes_t decode_addressing_mode(uint8_t opcode) {
