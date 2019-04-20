@@ -353,76 +353,12 @@ static inline void write_byte(uint8_t value, uint16_t location) {
   memory[location] = value;
 }
 
-static addressing_modes_t decode_addressing_mode(uint8_t opcode) {
-  static std::unordered_map<int, addressing_modes_t> modes10 = {
-      {0x0, IMMEDIATE}, {0x1, ZERO_PAGE},   {0x2, ACCUMULATOR},
-      {0x3, ABSOLUTE},  {0x5, ZERO_PAGE_X}, {0x7, ABSOLUTE_X}};
-  static std::unordered_map<int, addressing_modes_t> modes01 = {
-      {0x0, INDIRECT_X}, {0x1, ZERO_PAGE},  {0x2, IMMEDIATE},
-      {0x3, ABSOLUTE},   {0x4, INDIRECT_Y}, {0x5, ZERO_PAGE_X},
-      {0x6, ABSOLUTE_Y}, {0x7, ABSOLUTE_X}};
-  static std::unordered_map<int, addressing_modes_t> modes00 = {
-      {0x0, IMMEDIATE},
-      {0x1, ZERO_PAGE},
-      {0x3, ABSOLUTE},
-      {0x5, ZERO_PAGE_X},
-      {0x7, ABSOLUTE_X}};
-  const uint8_t type_mask = 0x3;
-  const uint8_t mode_mask = 0x1c;
-  /* this is done to check which type of opcode
-   * we're dealing with as there's 4 different ways to decode it*/
-  const uint8_t type = opcode & type_mask;
-  const uint8_t mode = (opcode & mode_mask) >> 2;
-
-  /* TODO make rules for when you're trying to get access to an addressing mode
-   * that doesn't exist for the given instruction for now it assumes everything
-   * has a respective addressing mode */
-  switch (type) {
-  case 0x0:
-    return modes00[mode];
-  case 0x1:
-    return modes01[mode];
-  case 0x2:
-    return modes10[mode];
-  default:
-    return UNKNOWN;
-  }
-}
-
-static const char *print_addressingmode(addressing_modes_t mode) {
-  const char *const modes[] = {
-      "IMPLICT",     "ACCUMULATOR", "IMMEDIATE",  "ZERO_PAGE",  "ZERO_PAGE_X",
-      "ZERO_PAGE_Y", "RELATIVE",    "IMPLIED",    "ABSOLUTE",   "ABSOLUTE_X",
-      "ABSOLUTE_Y",  "INDIRECT",    "INDIRECT_X", "INDIRECT_Y", "UNKNOWN"};
-  __print_addressingmode(modes[mode]);
-  return modes[mode];
-}
-
-/* TODO add tests for this and decode addressing mode */
-static bool compare(uint8_t opcode) {
-  uint8_t compare_to = (opcode & 0x20) >> 5;
-  /* we need to get the first two bytes which decides which register to compare
-   */
-  switch ((opcode & 0xc0) >> 6) {
-  case 0x0:
-    return get_flag(NEGATIVE) == compare_to;
-  case 0x1:
-    return get_flag(OVERFLOW) == compare_to;
-  case 0x2:
-    return get_flag(CARRY) == compare_to;
-  case 0x3:
-    return get_flag(ZERO) == compare_to;
-  }
-  return false;
-}
-
 void ADC_help(uint16_t value) {
   flags_t affected[] = {CARRY, ZERO, OVERFLOW, NEGATIVE};
   registers->accumulator += value + get_flag(CARRY);
   set_flags(affected, 4);
 }
 
-/* ADC start */
 void ADC_im(void) {
   uint8_t value = read_byte();
   ADC_help(value);
@@ -472,7 +408,6 @@ void ADC_indirecty(void) {
 
   ADC_help(value);
 }
-/* end of ADC */
 
 void AND_help(uint8_t value) {
   flags_t affected[] = {ZERO, NEGATIVE};
