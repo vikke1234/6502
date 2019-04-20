@@ -277,12 +277,25 @@ static inline unsigned char peek_from_stack(void) {
   return registers->stack_pointer[registers->_sp];
 }
 
+static uint8_t *indexed_indirect(uint8_t address) {
+  uint16_t _location = read_word_at(address);
+  uint16_t location = read_byte_at(_location + registers->x);
+  return &memory[location];
+}
+
+static uint8_t *indirect_indexed(uint8_t address) {
+  uint16_t _location = read_word_at(address);
+  uint16_t location = read_byte_at(_location);
+  return &memory[location + registers->y];
+}
+
 static inline void set_flag(flags_t flag, bool b) {
   if (get_flag(flag) != b) {
     registers->status ^= flag;
   }
 }
 
+/* TODO */
 static void set_flags(flags_t *flags, int n) {
   for (int i = 0; i < n; i++) {
     switch (flags[i]) {
