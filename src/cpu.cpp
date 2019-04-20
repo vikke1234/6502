@@ -28,6 +28,59 @@ static processor_registers *registers = &_registers;
 static memory_map _memory;
 static unsigned char *memory = (unsigned char *)&_memory;
 
+/* TODO maybe make like a "cputype" which contains information
+ * about the instruction that was executed */
+
+/**
+ * @brief prints which addressing mode is currently used
+ * @param mode
+ */
+static const char *print_addressingmode(addressing_modes_t mode);
+
+/**
+ * @brief sets the flag to the value of b
+ * @param flag
+ * @param b what the flag should be
+ */
+
+static inline void set_flags(flags_t flag, bool b);
+
+/**
+ * @brief takes an array of flags and checks for whether they should be set or
+ * not
+ * @param flags array of flags to be checked
+ * @param n amount of flags
+ */
+
+static void set_flags(flags_t *flags, int n);
+
+/**
+ * @brief gets a given flag, 1 or 0
+ * @param flag
+ */
+
+static inline uint8_t get_flag(flags_t flag);
+
+/**
+ * @brief decodes what addressing mode the opcode is in
+ * @param opcode
+ */
+
+static addressing_modes_t decode_addressing_mode(uint8_t opcode);
+
+/**
+ * @brief reads 2 little endian bytes and combines them into a 16bit unsigned
+ * assumes that thereemacs's atleast 2 bytes to read, note increment PC by 2
+ */
+static inline uint16_t read_word();
+
+/**
+ * @brief reads 1 byte (little endian), note increment PC
+ */
+static inline uint8_t read_byte();
+static inline uint8_t read_byte_at(uint16_t location);
+static inline uint16_t read_word_at(uint16_t location);
+
 /* this will probably be rewritten once the cpu is done */
 extern void initialize_cpu(const unsigned char *data, size_t size,
                            memory_map *m, processor_registers *reg) {
@@ -44,7 +97,7 @@ extern void initialize_cpu(const unsigned char *data, size_t size,
   registers->x = 0;
   registers->y = 0;
 
-  memcpy(&(memory[registers->pc]), data, size);
+  memcpy(&memory[registers->pc], data, size);
 }
 
 extern void interpret_opcode(void) {

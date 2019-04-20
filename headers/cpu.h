@@ -56,67 +56,10 @@ typedef struct {
 
 extern void initialize_cpu(const unsigned char *data, size_t size, memory_map *m, processor_registers *reg);
 
-/* TODO maybe make like a "cputype" which contains information
- * about the instruction that was executed */
-
-/**
- * @brief prints which addressing mode is currently used
- * @param mode
- */
-static const char *print_addressingmode (addressing_modes_t mode);
-
-/**
- * @brief sets the flag to the value of b
- * @param flag
- * @param b what the flag should be
- */
-
-static inline void set_flags(flags_t flag, bool b);
-
-/**
- * @brief takes an array of flags and checks for whether they should be set or not
- * @param flags array of flags to be checked
- * @param n amount of flags
- */
-
-static void set_flags(flags_t *flags, int n);
-
-/**
- * @brief gets a given flag, 1 or 0
- * @param flag
- */
-
-static inline uint8_t get_flag(flags_t flag);
-
-/**
- * @brief reads 2 little endian bytes and combines them into a 16bit unsigned
- * assumes that thereemacs's atleast 2 bytes to read, note increment PC by 2
- */
-static inline uint16_t read_word();
-
-/**
- * @brief reads 1 byte (little endian), note increment PC
- */
-static inline uint8_t read_byte();
-
-/**
- * @brief decodes what addressing mode the opcode is in
- * @param opcode
- */
-
-static addressing_modes_t decode_addressing_mode(uint8_t opcode);
-
-/**
- * @brief does comparison for branch instructions
- * @param opcode
- * @return true/false whether registercompared is equal to the 6th byte
- */
-static bool compare (uint8_t opcode);
 
 /* TODO: add small documentation on theese, maybe not and just link documentation */
 
 void ADC_help(uint16_t value);
-
 void ADC_im(void);
 void ADC_zero(void);
 void ADC_zerox(void);
@@ -217,18 +160,49 @@ void LDY_zerox(void);
 void LDY_absolute(void);
 void LDY_absolutex(void);
 
-void LSR(void);
+void LSR_help(uint8_t *value);
+void LSR_accumulator(void);
+void LSR_zero(void);
+void LSR_zerox(void);
+void LSR_absolute(void);
+void LSR_absolutex(void);
 void NOP(void);
-void ORA(void);
+void ORA_help(uint16_t value);
+void ORA_im(void);
+void ORA_zero(void);
+void ORA_zerox(void);
+void ORA_absolute(void);
+void ORA_absolutex(void);
+void ORA_absolutey(void);
+void ORA_indirectx(void);
+void ORA_indirecty(void);
 void PHA(void);
 void PHP(void);
 void PLA(void);
 void PLP(void);
-void ROL(void);
-void ROR(void);
+void ROL_help(uint8_t *location);
+void ROL_accumulator(void);
+void ROL_zero(void);
+void ROL_zerox(void);
+void ROL_absolute(void);
+void ROL_absolutex(void);
+void ROR_help(uint8_t *location);
+void ROR_accumulator(void);
+void ROR_zero(void);
+void ROR_zerox(void);
+void ROR_absolute(void);
+void ROR_absolutex(void);
 void RTI(void);
 void RTS(void);
-void SBC(void);
+void SBC_help(uint8_t amt);
+void SBC_im(void);
+void SBC_zero(void);
+void SBC_zerox(void);
+void SBC_absolute(void);
+void SBC_absolutex(void);
+void SBC_absolutey(void);
+void SBC_indirectx(void);
+void SBC_indirecty(void);
 void SEC(void);
 void SED(void);
 void SEI(void);
