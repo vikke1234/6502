@@ -10,6 +10,7 @@ void run_addressing_test(int start, addressing_modes_t mode) {
   }
 }
 
+
 TEST_CASE("01 indirect X", "[indirect X][indirect][01]"){
   run_addressing_test(0x01, INDIRECT_X);
 }
@@ -82,10 +83,10 @@ TEST_CASE("00 absolute", "[absolute][00]") {
 }
 
 TEST_CASE("00 zero page X", "[zero page X][zero page][00]") {
-  REQUIRE(decode_opcode(0x94) == ZERO_PAGE_X);
-  REQUIRE(decode_opcode(0xb4) == ZERO_PAGE_X);
+  REQUIRE(decode_addressing_mode(0x94) == ZERO_PAGE_X);
+  REQUIRE(decode_addressing_mode(0xb4) == ZERO_PAGE_X);
 }
 
 TEST_CASE("00 absolute X", "[absolute][absolute X][00]") {
-  REQUIRE(decode_opcode(0xbc) == ABSOLUTE_X);
+  REQUIRE(decode_addressing_mode(0xbc) == ABSOLUTE_X);
 }

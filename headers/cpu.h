@@ -3,8 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-extern void interpret_opcode();
-extern void initialize_cpu(const unsigned char *data, size_t size);
+extern void interpret_opcode(void);
 
 typedef enum {
   IMPLICT,
@@ -29,7 +28,7 @@ typedef enum {
   NEGATIVE    = 0x1 << 7,
   OVERFLOW    = 0x1 << 6,
   /* flag in 0x1 << 5 is always one */
-  BFLAG       = 0x1 << 4,
+  BREAK       = 0x1 << 4,
   DECIMAL     = 0x1 << 3,
   INTERRUPT   = 0x1 << 2,
   ZERO        = 0x1 << 1,
@@ -54,6 +53,8 @@ typedef struct {
   uint8_t x, y;
   uint8_t status;          /** NVsB DIZC, @see FLAGS */
 } processor_registers;
+
+extern void initialize_cpu(const unsigned char *data, size_t size, memory_map *m, processor_registers *reg);
 
 /* TODO maybe make like a "cputype" which contains information
  * about the instruction that was executed */
@@ -135,26 +136,54 @@ void AND_absolutex(void);
 void AND_absolutey(void);
 void AND_indirectx(void);
 void AND_indirecty(void);
+void ASL_accumulator(void);
+void ASL_zero(void);
+void ASL_zerox(void);
+void ASL_absolute(void);
+void ASL_absolutex(void);
 
-void ASL(void);
 void BCC(void);
 void BCS(void);
 void BEQ(void);
-void BIT(void);
+void BIT_zero(void);
+void BIT_absolute(void);
 void BMI(void);
 void BNE(void);
 void BPL(void);
 void BRK(void);
 void BVC(void);
 void BVS(void);
+
 void CLC(void);
 void CLD(void);
 void CLI(void);
 void CLV(void);
-void CMP(void);
-void CPX(void);
-void CPY(void);
-void DEC(void);
+
+void CMP_im(void);
+void CMP_zero(void);
+void CMP_zerox(void);
+void CMP_absolute(void);
+void CMP_absolutex(void);
+void CMP_absolutey(void);
+void CMP_indirectx(void);
+void CMP_indirecty(void);
+
+void CPX_help(unsigned char value);
+void CPX_im(void);
+void CPX_zero(void);
+void CPX_absolute(void);
+
+void CPY_help(unsigned char value);
+void CPY_im(void);
+void CPY_zero(void);
+void CPY_absolute(void);
+
+void DEC_help(void);
+void DEC_zero(void);
+void DEC_zerox(void);
+void DEC_absolute(void);
+void DEC_absolutex(void);
+
 void DEX(void);
 void DEY(void);
 void EOR(void);
