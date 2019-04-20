@@ -208,50 +208,50 @@ extern void interpret_opcode(void) {
       {0xAC, &LDY_absolute},
       {0xBC, &LDY_absolutex},
 
-      {0x4A, &LSR},
-      {0x46, &LSR},
-      {0x56, &LSR},
-      {0x4E, &LSR},
-      {0x5E, &LSR},
+      {0x4A, &LSR_accumulator},
+      {0x46, &LSR_zero},
+      {0x56, &LSR_zerox},
+      {0x4E, &LSR_absolute},
+      {0x5E, &LSR_absolutex},
 
       {0xEA, &NOP},
 
-      {0x05, &ORA},
-      {0x09, &ORA},
-      {0x15, &ORA},
-      {0x0D, &ORA},
-      {0x1D, &ORA},
-      {0x19, &ORA},
-      {0x01, &ORA},
-      {0x11, &ORA},
+      {0x05, &ORA_im},
+      {0x09, &ORA_zero},
+      {0x15, &ORA_zerox},
+      {0x0D, &ORA_absolute},
+      {0x1D, &ORA_absolutex},
+      {0x19, &ORA_absolutey},
+      {0x01, &ORA_indirectx},
+      {0x11, &ORA_indirecty},
 
       {0x48, &PHA},
       {0x08, &PHP},
       {0x69, &PLA},
       {0x28, &PLP},
 
-      {0x2A, &ROL},
-      {0x26, &ROL},
-      {0x36, &ROL},
-      {0x2e, &ROL},
-      {0x3e, &ROL},
+      {0x2A, &ROL_accumulator},
+      {0x26, &ROL_zero},
+      {0x36, &ROL_zerox},
+      {0x2e, &ROL_absolute},
+      {0x3e, &ROL_absolutex},
 
-      {0x6a, &ROR},
-      {0x66, &ROR},
-      {0x76, &ROR},
-      {0x6e, &ROR},
-      {0x7e, &ROR},
+      {0x6a, &ROR_accumulator},
+      {0x66, &ROR_zero},
+      {0x76, &ROR_zerox},
+      {0x6e, &ROR_absolute},
+      {0x7e, &ROR_absolutex},
 
       {0x40, &RTI},
       {0x60, &RTS},
-      {0xE9, &SBC},
-      {0xE5, &SBC},
-      {0xF5, &SBC},
-      {0xED, &SBC},
-      {0xFD, &SBC},
-      {0xF9, &SBC},
-      {0xE1, &SBC},
-      {0xF1, &SBC},
+      {0xE9, &SBC_im},
+      {0xE5, &SBC_zero},
+      {0xF5, &SBC_zerox},
+      {0xED, &SBC_absolute},
+      {0xFD, &SBC_absolutex},
+      {0xF9, &SBC_absolutey},
+      {0xE1, &SBC_indirectx},
+      {0xF1, &SBC_indirecty},
 
       {0x38, &SEC},
       {0xF8, &SED},
@@ -318,16 +318,15 @@ static void set_flags(flags_t *flags, int n) {
     case BREAK:
       break;
     case NEGATIVE:
-      /* TODO */
       break;
     }
   }
 }
 
 static inline uint8_t get_flag(flags_t flag) {
-  return !!(registers->status &
-            flag); /* !! to turn it into a 1 or 0 to not require shifting and
-                      looking up the power of two it is */
+  /* !! to turn it into a 1 or 0 to not require shifting and
+     looking up the power of two it is */
+  return !!(registers->status & flag);
 }
 
 static inline uint16_t read_word() {
@@ -1121,23 +1120,79 @@ void SBC_absolute(void) {
   SBC_help(value);
 }
 
-void SBC_absolutex(void) {}
+void SBC_absolutex(void) {
+  uint16_t location = read_word();
+  uint8_t value = read_byte_at(location + registers->x);
+  SBC_help(value);
+}
+
+void SBC_absolutey(void) {
+  uint16_t location = read_word();
+  uint8_t value = read_byte_at(location + registers->y);
+  SBC_help(value);
+}
+
+void SBC_indirectx(void) {
+  uint16_t address = read_word();
+  uint8_t *ptr = indexed_indirect(address);
+  SBC_help(*ptr);
+}
+
+void SBC_indirecty(void) {
+  uint16_t address = read_word();
+  uint8_t *ptr = indirect_indexed(address);
+  SBC_help(*ptr);
+}
+
 void SEC(void) { set_flag(CARRY, true); }
 void SED(void) { set_flag(DECIMAL, true); }
 void SEI(void) { set_flag(INTERRUPT, true); }
 
-void STA(void) {
+void STA_zero(void) {
   uint8_t location = read_byte();
-  printf("STA location: %d\n", location);
   write_byte(registers->accumulator, location);
 }
 
-void STX(void) { write_byte(registers->x, read_byte()); }
+void STA_zerox(void) {
+  uint8_t address = read_byte();
+  write_byte(registers->accumulator, address + registers->x);
+}
 
-void STY(void) {
-  uint16_t value = read_word();
-  printf("STY value: %x\n", value);
-  write_byte(registers->y, value);
+void STA_absolute(void) {
+  uint16_t address = read_word();
+  write_byte(registers->accumulator, address);
+}
+
+void STA_absolutex(void) {
+  uint16_t address = read_word();
+  write_byte(registers->accumulator, address + registers->x);
+}
+
+void STA_absolutey(void) {
+  uint16_t address = read_word();
+  write_byte(registers->accumulator, address + registers->y);
+}
+
+void STA_indirectx(void) {
+  uint8_t address = read_byte();
+  uint8_t *ptr = indexed_indirect(address);
+  *ptr = registers->accumulator;
+}
+
+void STA_indirecty(void) {
+  uint8_t address = read_byte();
+  uint8_t *ptr = indirect_indexed(address);
+  *ptr = registers->accumulator;
+}
+
+void STX_zero(void) { write_byte(registers->x, read_byte()); }
+void STX_zeroy(void) { write_byte(registers->x, read_byte()); }
+void STX_absolute(void) { write_byte(registers->x, read_word()); }
+
+void STY_zero(void) { write_byte(registers->y, read_byte()); }
+void STY_zerox(void) { write_byte(registers->y, read_byte() + registers->x); }
+void STY_absolute(void) {
+  write_byte(registers->y, read_word() + registers->x);
 }
 
 void TAX(void) {
@@ -1151,7 +1206,25 @@ void TAY(void) {
   registers->y = registers->accumulator;
   set_flags(affected, 2);
 }
-void TSX(void) { registers->x = peek_from_stack(); }
-void TXA(void) { registers->accumulator = peek_from_stack(); }
-void TXS(void) { push_to_stack(registers->x); }
-void TYA(void) { registers->accumulator = registers->y; }
+void TSX(void) {
+  flags_t affected[] = {ZERO, NEGATIVE};
+  registers->x = peek_from_stack();
+  set_flags(affected, 2);
+}
+
+void TXA(void) {
+  flags_t affects[] = {ZERO, NEGATIVE};
+  registers->accumulator = peek_from_stack();
+  set_flags(affects, 2);
+}
+void TXS(void) {
+  flags_t affects[] = {ZERO, NEGATIVE};
+  push_to_stack(registers->x);
+  set_flags(affects, 2);
+}
+
+void TYA(void) {
+  flags_t affects[] = {ZERO, NEGATIVE};
+  registers->accumulator = registers->y;
+  set_flags(affects, 2);
+}
