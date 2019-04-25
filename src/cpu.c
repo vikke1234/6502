@@ -2,15 +2,10 @@
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
-
-#ifdef DEBUG
-#define __print_addressingmode(v) printf("%s", (v))
-#else
-#define __print_addressingmode(v)
-#endif
+#include <unistd.h>
 
 /* TODO:
- * 4. turn all memory[location] into read_byte_at(location)
+ * add clock counter to make drawing easier
  */
 
 typedef void (*instruction_pointer)(void);
@@ -257,7 +252,8 @@ extern void interpret_opcode(void) {
   if (instructions[opcode]) {
     instructions[opcode]();
   } else {
-    puts("invalid opcode");
+    printf("invalid opcode: %X\n", opcode);
+    printf("PC: %x\n", registers->pc);
   }
 }
 
@@ -279,7 +275,7 @@ static uint8_t *indexed_indirect(uint8_t address) {
   return &memory[location];
 }
 
-static uint8_t *indirect_indexed(uint8_t address) {
+static inline uint8_t *indirect_indexed(uint8_t address) {
   uint16_t _location = read_word_at(address);
   uint16_t location = read_byte_at(_location);
   return &memory[location + registers->y];
