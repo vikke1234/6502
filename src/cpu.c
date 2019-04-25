@@ -52,6 +52,178 @@ static processor_registers *registers = &_registers;
 static memory_map _memory;
 static unsigned char *memory = (unsigned char *)&_memory;
 
+static void ADC_help(uint16_t value);
+static void ADC_im(void);
+static void ADC_zero(void);
+static void ADC_zerox(void);
+static void ADC_zeroy(void);
+static void ADC_absolute(void);
+static void ADC_absolutex(void);
+static void ADC_absolutey(void);
+static void ADC_indirectx(void);
+static void ADC_indirecty(void);
+static void AND_help(uint8_t value);
+static void AND_im(void);
+static void AND_zero(void);
+static void AND_zerox(void);
+static void AND_absolute(void);
+static void AND_absolutex(void);
+static void AND_absolutey(void);
+static void AND_indirectx(void);
+static void AND_indirecty(void);
+static void ASL_help(uint8_t *address);
+static void ASL_accumulator(void);
+static void ASL_zero(void);
+static void ASL_zerox(void);
+static void ASL_absolute(void);
+static void ASL_absolutex(void);
+static void BCC(void);
+static void BCS(void);
+static void BEQ(void);
+static void BIT_help(uint16_t bit_test);
+static void BIT_zero(void);
+static void BIT_absolute(void);
+static void BMI(void);
+static void BNE(void);
+static void BPL(void);
+static void BRK(void);
+static void BVC(void);
+static void BVS(void);
+static void CLC(void);
+static void CLD(void);
+static void CLI(void);
+static void CLV(void);
+static void cmp_help(unsigned char value, unsigned char reg);
+static void CMP_help(unsigned char value);
+static void CMP_im(void);
+static void CMP_zero(void);
+static void CMP_zerox(void);
+static void CMP_absolute(void);
+static void CMP_absolutex(void);
+static void CMP_absolutey(void);
+static void CMP_indirectx(void);
+static void CMP_indirecty(void);
+static void CPX_help(unsigned char value);
+static void CPX_im(void);
+static void CPX_zero(void);
+static void CPX_absolute(void);
+static void CPY_help(unsigned char value);
+static void CPY_im(void);
+static void CPY_zero(void);
+static void CPY_absolute(void);
+static void DEC_help(uint16_t location);
+static void DEC_zero(void);
+static void DEC_zerox(void);
+static void DEC_absolute(void);
+static void DEC_absolutex(void);
+static void DEX(void);
+static void DEY(void);
+static void EOR_help(uint8_t value);
+static void EOR_im(void);
+static void EOR_zero(void);
+static void EOR_zerox(void);
+static void EOR_absolute(void);
+static void EOR_absolutex(void);
+static void EOR_absolutey(void);
+static void EOR_indirectx(void);
+static void EOR_indirecty(void);
+static void INC_help(uint16_t location);
+static void INC_zero(void);
+static void INC_zerox(void);
+static void INC_absolute(void);
+static void INC_absolutex(void);
+static void INX(void);
+static void INY(void);
+static void JMP_absolute(void);
+static void JMP_indirect(void);
+static void JSR(void);
+static void LDA_help(uint16_t value);
+static void LDA_im(void);
+static void LDA_zero(void);
+static void LDA_zerox(void);
+static void LDA_absolute(void);
+static void LDA_absolutex(void);
+static void LDA_absolutey(void);
+static void LDA_indirectx(void);
+static void LDA_indirecty(void);
+static void LDX_help(uint8_t value);
+static void LDX_im(void);
+static void LDX_zero(void);
+static void LDX_zeroy(void);
+static void LDX_absolute(void);
+static void LDX_absolutey(void);
+static void LDY_help(uint8_t value);
+static void LDY_im(void);
+static void LDY_zero(void);
+static void LDY_zerox(void);
+static void LDY_absolute(void);
+static void LDY_absolutex(void);
+static void LSR_help(uint8_t *value);
+static void LSR_accumulator(void);
+static void LSR_zero(void);
+static void LSR_zerox(void);
+static void LSR_absolute(void);
+static void LSR_absolutex(void);
+static void NOP(void);
+static void ORA_help(uint16_t value);
+static void ORA_im(void);
+static void ORA_zero(void);
+static void ORA_zerox(void);
+static void ORA_absolute(void);
+static void ORA_absolutex(void);
+static void ORA_absolutey(void);
+static void ORA_indirectx(void);
+static void ORA_indirecty(void);
+static void PHA(void);
+static void PHP(void);
+static void PLA(void);
+static void PLP(void);
+static void ROL_help(uint8_t *location);
+static void ROL_accumulator(void);
+static void ROL_zero(void);
+static void ROL_zerox(void);
+static void ROL_absolute(void);
+static void ROL_absolutex(void);
+static void ROR_help(uint8_t *location);
+static void ROR_accumulator(void);
+static void ROR_zero(void);
+static void ROR_zerox(void);
+static void ROR_absolute(void);
+static void ROR_absolutex(void);
+static void RTI(void);
+static void RTS(void);
+static void SBC_help(uint8_t amt);
+static void SBC_im(void);
+static void SBC_zero(void);
+static void SBC_zerox(void);
+static void SBC_absolute(void);
+static void SBC_absolutex(void);
+static void SBC_absolutey(void);
+static void SBC_indirectx(void);
+static void SBC_indirecty(void);
+static void SEC(void);
+static void SED(void);
+static void SEI(void);
+static void STA_zero(void);
+static void STA_zerox(void);
+static void STA_absolute(void);
+static void STA_absolutex(void);
+static void STA_absolutey(void);
+static void STA_indirectx(void);
+static void STA_indirecty(void);
+static void STX_zero(void);
+static void STX_zeroy(void);
+static void STX_absolute(void);
+static void STY_zero(void);
+static void STY_zerox(void);
+static void STY_absolute(void);
+static void TAX(void);
+static void TAY(void);
+static void TSX(void);
+static void TXA(void);
+static void TXS(void);
+static void TYA(void);
+
 /* this will probably be rewritten once the cpu is done */
 extern void initialize_cpu(const unsigned char *data, size_t size,
                            memory_map *m, processor_registers *reg) {
@@ -67,7 +239,7 @@ extern void initialize_cpu(const unsigned char *data, size_t size,
   registers->status = 0;
   registers->x = 0;
   registers->y = 0;
-
+  unsigned long long clock_ticks = 0;
   memcpy(&memory[registers->pc], &data[0x600], size - 0x600);
 }
 
@@ -269,7 +441,7 @@ static inline unsigned char peek_from_stack(void) {
   return registers->stack_pointer[registers->_sp];
 }
 
-static uint8_t *indexed_indirect(uint8_t address) {
+static inline uint8_t *indexed_indirect(uint8_t address) {
   uint16_t _location = read_word_at(address);
   uint16_t location = read_byte_at(_location + registers->x);
   return &memory[location];
@@ -384,49 +556,49 @@ void ADC_help(uint16_t value) {
   registers->accumulator = result;
 }
 
-void ADC_im(void) {
+static void ADC_im(void) {
   uint8_t value = read_byte();
   ADC_help(value);
 }
 
-void ADC_zero(void) {
+static void ADC_zero(void) {
   uint8_t location = read_byte();
   ADC_help(memory[location]);
 }
 
-void ADC_zerox(void) {
+static void ADC_zerox(void) {
   uint8_t location = read_byte();
   ADC_help(memory[location + registers->x]);
 }
 
-void ADC_zeroy(void) {
+static void ADC_zeroy(void) {
   uint8_t location = read_byte();
   ADC_help(memory[location + registers->y]);
 }
 
-void ADC_absolute(void) {
+static void ADC_absolute(void) {
   uint16_t location = read_word();
   ADC_help(memory[location]);
 }
 
-void ADC_absolutex(void) {
+static void ADC_absolutex(void) {
   uint16_t location = read_word();
   ADC_help(memory[location + registers->x]);
 }
 
-void ADC_absolutey(void) {
+static void ADC_absolutey(void) {
   uint16_t location = read_word();
   ADC_help(memory[location + registers->y]);
 }
 
-void ADC_indirectx(void) {
+static void ADC_indirectx(void) {
   uint8_t location = read_byte();
   uint16_t value = read_word_at(location + registers->x);
   printf("%d\n", value);
   ADC_help(value);
 }
 
-void ADC_indirecty(void) {
+static void ADC_indirecty(void) {
   uint8_t _location = read_byte();
   uint8_t location = read_word_at(_location + registers->y);
   uint16_t value = read_word_at(location);
@@ -434,31 +606,31 @@ void ADC_indirecty(void) {
   ADC_help(value);
 }
 
-void AND_help(uint8_t value) {
+static void AND_help(uint8_t value) {
   registers->accumulator &= value;
   zero_check(registers->accumulator);
   negative_check(registers->accumulator);
 }
-void AND_im(void) { AND_help(read_byte()); }
+static void AND_im(void) { AND_help(read_byte()); }
 
-void AND_zero(void) { AND_help(memory[read_byte()]); }
+static void AND_zero(void) { AND_help(memory[read_byte()]); }
 
-void AND_zerox(void) { AND_help(memory[read_byte() + registers->x]); }
+static void AND_zerox(void) { AND_help(memory[read_byte() + registers->x]); }
 
-void AND_absolute(void) { AND_help(memory[read_word()]); }
+static void AND_absolute(void) { AND_help(memory[read_word()]); }
 
-void AND_absolutex(void) { AND_help(memory[read_word() + registers->x]); }
+static void AND_absolutex(void) { AND_help(memory[read_word() + registers->x]); }
 
-void AND_absolutey(void) { AND_help(memory[read_word() + registers->y]); }
+static void AND_absolutey(void) { AND_help(memory[read_word() + registers->y]); }
 
-void AND_indirectx(void) {
+static void AND_indirectx(void) {
   uint8_t _location = read_byte();
   uint16_t location = read_word_at(_location + registers->x);
   uint8_t value = read_byte_at(location);
   AND_help(value);
 }
 
-void AND_indirecty(void) {
+static void AND_indirecty(void) {
   uint8_t _location = read_byte();
   uint16_t location = read_word_at(_location);
   uint8_t value = read_byte_at(location + registers->y);
@@ -471,31 +643,31 @@ void ASL_help(uint8_t *address) {
   negative_check(*address);
 }
 
-void ASL_accumulator(void) { ASL_help(&registers->accumulator); }
+static void ASL_accumulator(void) { ASL_help(&registers->accumulator); }
 
-void ASL_zero(void) { ASL_help(&memory[read_byte()]); }
+static void ASL_zero(void) { ASL_help(&memory[read_byte()]); }
 
-void ASL_zerox(void) { ASL_help(&memory[read_byte() + registers->x]); }
+static void ASL_zerox(void) { ASL_help(&memory[read_byte() + registers->x]); }
 
-void ASL_absolute(void) { ASL_help(&memory[read_word()]); }
+static void ASL_absolute(void) { ASL_help(&memory[read_word()]); }
 
-void ASL_absolutex(void) { ASL_help(&memory[read_word() + registers->x]); }
+static void ASL_absolutex(void) { ASL_help(&memory[read_word() + registers->x]); }
 
-void BCC(void) {
+static void BCC(void) {
   int8_t offset = read_byte();
   if (!get_flag(CARRY)) {
     registers->pc += offset;
   }
 }
 
-void BCS(void) {
+static void BCS(void) {
   int8_t offset = read_byte();
   if (get_flag(CARRY)) {
     registers->pc += offset;
   }
 }
 
-void BEQ(void) {
+static void BEQ(void) {
   int8_t offset = read_byte();
   if (get_flag(ZERO)) {
     registers->pc += offset;
@@ -513,66 +685,66 @@ void BIT_help(uint16_t bit_test) {
   }
 }
 
-void BIT_zero(void) {
+static void BIT_zero(void) {
   uint8_t location = read_byte();
   uint8_t bit_test = registers->accumulator & memory[location];
   BIT_help(bit_test);
 }
 
-void BIT_absolute(void) {
+static void BIT_absolute(void) {
   uint16_t location = read_word();
   uint8_t bit_test = registers->accumulator & memory[location];
   BIT_help(bit_test);
 }
 
-void BMI(void) {
+static void BMI(void) {
   int8_t offset = read_byte();
   if (get_flag(NEGATIVE)) {
     registers->pc += offset;
   }
 }
 
-void BNE(void) {
+static void BNE(void) {
   int8_t offset = read_byte();
   if (!get_flag(ZERO)) {
     registers->pc += offset;
   }
 }
 
-void BPL(void) {
+static void BPL(void) {
   int8_t offset = read_byte();
   if (!get_flag(NEGATIVE)) {
     registers->pc += offset;
   }
 }
 
-void BRK(void) {
+static void BRK(void) {
   push_to_stack(registers->pc);
   push_to_stack(registers->status);
   set_flag(BREAK, true);
   registers->pc = 0xFFFE;
 }
 
-void BVC(void) {
+static void BVC(void) {
   int8_t offset = read_byte();
   if (!get_flag(OVERFLOW)) {
     registers->pc += offset;
   }
 }
-void BVS(void) {
+static void BVS(void) {
   int8_t offset = read_byte();
   if (get_flag(OVERFLOW)) {
     registers->pc += offset;
   }
 }
 
-void CLC(void) { set_flag(CARRY, false); }
+static void CLC(void) { set_flag(CARRY, false); }
 
-void CLD(void) { set_flag(DECIMAL, false); }
+static void CLD(void) { set_flag(DECIMAL, false); }
 
-void CLI(void) { set_flag(INTERRUPT, false); }
+static void CLI(void) { set_flag(INTERRUPT, false); }
 
-void CLV(void) { set_flag(OVERFLOW, false); }
+static void CLV(void) { set_flag(OVERFLOW, false); }
 
 /* this is for all compare instructions */
 void cmp_help(unsigned char value, unsigned char reg) {
@@ -589,49 +761,49 @@ void cmp_help(unsigned char value, unsigned char reg) {
 
 void CMP_help(unsigned char value) { cmp_help(value, registers->accumulator); }
 
-void CMP_im(void) {
+static void CMP_im(void) {
   unsigned char value = read_byte();
   CMP_help(value);
 }
 
-void CMP_zero(void) {
+static void CMP_zero(void) {
   uint8_t location = read_byte();
   uint8_t value = memory[location];
   CMP_help(value);
 }
 
-void CMP_zerox(void) {
+static void CMP_zerox(void) {
   uint8_t location = read_byte();
   uint8_t value = memory[location + registers->x];
   CMP_help(value);
 }
 
-void CMP_absolute(void) {
+static void CMP_absolute(void) {
   uint16_t location = read_word();
   uint8_t value = memory[location];
   CMP_help(value);
 }
 
-void CMP_absolutex(void) {
+static void CMP_absolutex(void) {
   uint16_t location = read_word();
   uint8_t value = memory[location + registers->x];
   CMP_help(value);
 }
 
-void CMP_absolutey(void) {
+static void CMP_absolutey(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->y);
   CMP_help(value);
 }
 
-void CMP_indirectx(void) {
+static void CMP_indirectx(void) {
   uint8_t _location = read_byte();
   uint16_t location = read_word_at(_location + registers->x);
   uint8_t value = read_byte_at(location);
   CMP_help(value);
 }
 
-void CMP_indirecty(void) {
+static void CMP_indirecty(void) {
   uint8_t _location = read_byte();
   uint16_t location = read_word_at(_location);
   uint8_t value = read_byte_at(location + registers->y);
@@ -640,18 +812,18 @@ void CMP_indirecty(void) {
 
 void CPX_help(unsigned char value) { cmp_help(value, registers->x); }
 
-void CPX_im(void) {
+static void CPX_im(void) {
   uint8_t value = read_byte();
   CPX_help(value);
 }
 
-void CPX_zero(void) {
+static void CPX_zero(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
   CPX_help(value);
 }
 
-void CPX_absolute(void) {
+static void CPX_absolute(void) {
   uint8_t location = read_word();
   uint8_t value = read_byte_at(location);
   CPX_help(value);
@@ -659,18 +831,18 @@ void CPX_absolute(void) {
 
 void CPY_help(unsigned char value) { cmp_help(value, registers->y); }
 
-void CPY_im(void) {
+static void CPY_im(void) {
   uint8_t value = read_byte();
   CPX_help(value);
 }
 
-void CPY_zero(void) {
+static void CPY_zero(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
   CPX_help(value);
 }
 
-void CPY_absolute(void) {
+static void CPY_absolute(void) {
   uint8_t location = read_word();
   uint8_t value = read_byte_at(location);
   CPX_help(value);
@@ -682,87 +854,87 @@ void DEC_help(uint16_t location) {
   negative_check(memory[location]);
 }
 
-void DEC_zero(void) {
+static void DEC_zero(void) {
   uint8_t location = read_byte();
   DEC_help(location);
 }
 
-void DEC_zerox(void) {
+static void DEC_zerox(void) {
   uint8_t location = read_byte();
   DEC_help(location);
 }
 
-void DEC_absolute(void) {
+static void DEC_absolute(void) {
   uint16_t location = read_word();
   DEC_help(location);
 }
 
-void DEC_absolutex(void) {
+static void DEC_absolutex(void) {
   uint16_t location = read_word();
   DEC_help(location + registers->x);
 }
 
-void DEX(void) {
+static void DEX(void) {
   registers->x--;
   zero_check(registers->x);
   negative_check(registers->x);
 }
 
-void DEY(void) {
+static void DEY(void) {
   registers->y--;
   zero_check(registers->y);
   negative_check(registers->y);
 }
 
-void EOR_help(uint8_t value) {
+static void EOR_help(uint8_t value) {
   registers->accumulator ^= value;
   zero_check(registers->accumulator);
   negative_check(registers->accumulator);
 }
 
-void EOR_im(void) {
+static void EOR_im(void) {
   uint8_t value = read_byte();
   EOR_help(value);
 }
 
-void EOR_zero(void) {
+static void EOR_zero(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
   EOR_help(value);
 }
 
-void EOR_zerox(void) {
+static void EOR_zerox(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
   EOR_help(value);
 }
 
-void EOR_absolute(void) {
+static void EOR_absolute(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location);
   EOR_help(value);
 }
 
-void EOR_absolutex(void) {
+static void EOR_absolutex(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->x);
   EOR_help(value);
 }
 
-void EOR_absolutey(void) {
+static void EOR_absolutey(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->y);
   EOR_help(value);
 }
 
-void EOR_indirectx(void) {
+static void EOR_indirectx(void) {
   uint8_t _location = read_byte();
   uint8_t location = read_byte_at(_location + registers->x);
   uint16_t value = read_word_at(location);
   EOR_help(value);
 }
 
-void EOR_indirecty(void) {
+static void EOR_indirecty(void) {
   uint8_t _location = read_byte();
   uint8_t location = read_byte_at(_location);
   uint16_t value = read_word_at(location);
@@ -776,47 +948,47 @@ void INC_help(uint16_t location) {
   negative_check(memory[location]);
 }
 
-void INC_zero(void) {
+static void INC_zero(void) {
   uint8_t location = read_byte();
   INC_help(location);
 }
 
-void INC_zerox(void) {
+static void INC_zerox(void) {
   uint8_t location = read_byte();
   INC_help(location);
 }
 
-void INC_absolute(void) {
+static void INC_absolute(void) {
   uint8_t location = read_word();
   INC_help(location);
 }
 
-void INC_absolutex(void) {
+static void INC_absolutex(void) {
   uint8_t location = read_word();
   INC_help(location);
 }
 
-void INX(void) {
+static void INX(void) {
   registers->x++;
   zero_check(registers->x);
   negative_check(registers->x);
 }
 
-void INY(void) {
+static void INY(void) {
   registers->y++;
   zero_check(registers->y);
   negative_check(registers->y);
 }
 
-void JMP_absolute(void) { registers->pc = read_word(); }
+static void JMP_absolute(void) { registers->pc = read_word(); }
 
-void JMP_indirect(void) {
+static void JMP_indirect(void) {
   uint16_t location = read_word();
   uint16_t jmp_to = read_word_at(location);
   registers->pc = jmp_to;
 }
 
-void JSR(void) {
+static void JSR(void) {
   registers->stack_pointer[registers->_sp] = registers->pc - 1;
   registers->pc = read_word();
 }
@@ -827,23 +999,23 @@ void LDA_help(uint16_t value) {
   negative_check(registers->accumulator);
 }
 
-void LDA_im(void) {
+static void LDA_im(void) {
   uint8_t value = read_byte();
   printf("LDA value: %x\n", value);
   LDA_help(value);
 }
 
-void LDA_zero(void) { LDA_help(memory[read_byte()]); }
+static void LDA_zero(void) { LDA_help(memory[read_byte()]); }
 
-void LDA_zerox(void) { LDA_help(memory[read_byte() + registers->x]); }
+static void LDA_zerox(void) { LDA_help(memory[read_byte() + registers->x]); }
 
-void LDA_absolute(void) { LDA_help(memory[read_word()]); }
+static void LDA_absolute(void) { LDA_help(memory[read_word()]); }
 
-void LDA_absolutex(void) { LDA_help(memory[read_word() + registers->x]); }
+static void LDA_absolutex(void) { LDA_help(memory[read_word() + registers->x]); }
 
-void LDA_absolutey(void) { LDA_help(memory[read_word() + registers->y]); }
+static void LDA_absolutey(void) { LDA_help(memory[read_word() + registers->y]); }
 
-void LDA_indirectx(void) {
+static void LDA_indirectx(void) {
   uint8_t _location = read_byte() + registers->x;
   uint16_t location = read_word_at(_location);
   uint16_t value = read_word_at(location);
@@ -851,7 +1023,7 @@ void LDA_indirectx(void) {
   LDA_help(value);
 }
 
-void LDA_indirecty(void) {
+static void LDA_indirecty(void) {
   uint8_t _location = read_byte() + registers->y;
   uint16_t location = read_word_at(_location);
   uint16_t value = read_word_at(location);
@@ -859,43 +1031,43 @@ void LDA_indirecty(void) {
   LDA_help(value);
 }
 
-void LDX_help(uint8_t value) {
+static void LDX_help(uint8_t value) {
   registers->x = value;
   zero_check(registers->x);
   negative_check(registers->x);
 }
 
-void LDX_im(void) {
+static void LDX_im(void) {
   uint8_t value = read_byte();
   printf("ldx value: %x\n", value);
   LDX_help(value);
 }
 
-void LDX_zero(void) { LDX_help(memory[read_byte()]); }
+static void LDX_zero(void) { LDX_help(memory[read_byte()]); }
 
-void LDX_zeroy(void) { LDX_help(memory[read_byte() + registers->y]); }
+static void LDX_zeroy(void) { LDX_help(memory[read_byte() + registers->y]); }
 
-void LDX_absolute(void) { LDX_help(memory[read_word()]); }
+static void LDX_absolute(void) { LDX_help(memory[read_word()]); }
 
-void LDX_absolutey(void) { LDX_help(memory[read_word() + registers->y]); }
+static void LDX_absolutey(void) { LDX_help(memory[read_word() + registers->y]); }
 
-void LDY_help(uint8_t value) {
+static void LDY_help(uint8_t value) {
   registers->y = value;
   zero_check(registers->y);
   negative_check(registers->y);
 }
 
-void LDY_im(void) { LDY_help(read_byte()); }
+static void LDY_im(void) { LDY_help(read_byte()); }
 
-void LDY_zero(void) { LDY_help(memory[read_byte()]); }
+static void LDY_zero(void) { LDY_help(memory[read_byte()]); }
 
-void LDY_zerox(void) { LDY_help(memory[read_byte() + registers->x]); }
+static void LDY_zerox(void) { LDY_help(memory[read_byte() + registers->x]); }
 
-void LDY_absolute(void) { LDY_help(memory[read_word()]); }
+static void LDY_absolute(void) { LDY_help(memory[read_word()]); }
 
-void LDY_absolutex(void) { LDY_help(memory[read_word() + registers->y]); }
+static void LDY_absolutex(void) { LDY_help(memory[read_word() + registers->y]); }
 
-void LSR_help(uint8_t *value) {
+static void LSR_help(uint8_t *value) {
   flags_t affects[] = {ZERO, CARRY, NEGATIVE};
   *value >>= 1;
   carry_check(*value);
@@ -903,93 +1075,93 @@ void LSR_help(uint8_t *value) {
   negative_check(*value);
 }
 
-void LSR_accumulator(void) { LSR_help(&registers->accumulator); }
+static void LSR_accumulator(void) { LSR_help(&registers->accumulator); }
 
-void LSR_zero(void) {
+static void LSR_zero(void) {
   uint8_t location = read_byte();
   LSR_help(&memory[location]);
 }
 
-void LSR_zerox(void) {
+static void LSR_zerox(void) {
   uint8_t location = read_byte();
   LSR_help(&memory[location + registers->x]);
 }
 
-void LSR_absolute(void) {
+static void LSR_absolute(void) {
   uint16_t location = read_word();
   LSR_help(&memory[location]);
 }
 
-void LSR_absolutex(void) {
+static void LSR_absolutex(void) {
   uint16_t location = read_word();
   LSR_help(&memory[location + registers->x]);
 }
 
-void NOP(void) { registers->pc++; }
+static void NOP(void) { registers->pc++; }
 
-void ORA_help(uint16_t value) {
+static void ORA_help(uint16_t value) {
   flags_t affected[] = {ZERO, NEGATIVE};
   registers->accumulator |= read_byte();
   zero_check(registers->accumulator);
   negative_check(registers->accumulator);
 }
 
-void ORA_im(void) {
+static void ORA_im(void) {
   uint8_t value = read_byte();
   ORA_help(value);
 }
 
-void ORA_zero(void) {
+static void ORA_zero(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
   ORA_help(value);
 }
 
-void ORA_zerox(void) {
+static void ORA_zerox(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
   ORA_help(value);
 }
 
-void ORA_absolute(void) {
+static void ORA_absolute(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location);
   ORA_help(value);
 }
 
-void ORA_absolutex(void) {
+static void ORA_absolutex(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->x);
   ORA_help(value);
 }
 
-void ORA_absolutey(void) {
+static void ORA_absolutey(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->y);
   ORA_help(value);
 }
 
-void ORA_indirectx(void) {
+static void ORA_indirectx(void) {
   uint8_t _location = read_byte();
   uint8_t location = read_word_at(_location + registers->x);
   uint8_t value = read_byte_at(location);
   ORA_help(value);
 }
 
-void ORA_indirecty(void) {
+static void ORA_indirecty(void) {
   uint8_t _location = read_byte();
   uint8_t location = read_word_at(_location);
   uint8_t value = read_byte_at(location + registers->y);
   ORA_help(value);
 }
 
-void PHA(void) { push_to_stack(read_byte()); }
+static void PHA(void) { push_to_stack(read_byte()); }
 
-void PHP(void) { push_to_stack(registers->status); }
+static void PHP(void) { push_to_stack(registers->status); }
 
-void PLA(void) { registers->accumulator = get_from_stack(); }
+static void PLA(void) { registers->accumulator = get_from_stack(); }
 
-void PLP(void) { registers->status = get_from_stack(); }
+static void PLP(void) { registers->status = get_from_stack(); }
 
 void ROL_help(uint8_t *location) {
   /* shifts the accumulator (to be changed later to support different addressing
@@ -1000,24 +1172,24 @@ void ROL_help(uint8_t *location) {
   negative_check(*location);
 }
 
-void ROL_accumulator(void) { ROL_help(&registers->accumulator); }
+static void ROL_accumulator(void) { ROL_help(&registers->accumulator); }
 
-void ROL_zero(void) {
+static void ROL_zero(void) {
   uint8_t location = read_byte();
   ROL_help(&memory[location]);
 }
 
-void ROL_zerox(void) {
+static void ROL_zerox(void) {
   uint8_t location = read_byte();
   ROL_help(&memory[location + registers->x]);
 }
 
-void ROL_absolute(void) {
+static void ROL_absolute(void) {
   uint16_t location = read_word();
   ROL_help(&memory[location]);
 }
 
-void ROL_absolutex(void) {
+static void ROL_absolutex(void) {
   uint16_t location = read_word();
   ROL_help(&memory[location + registers->x]);
 }
@@ -1031,39 +1203,39 @@ void ROR_help(uint8_t *location) {
   negative_check(*location);
 }
 
-void ROR_accumulator(void) { ROR_help(&registers->accumulator); }
+static void ROR_accumulator(void) { ROR_help(&registers->accumulator); }
 
-void ROR_zero(void) {
+static void ROR_zero(void) {
   uint8_t location = read_byte();
   ROR_help(&memory[location]);
 }
 
-void ROR_zerox(void) {
+static void ROR_zerox(void) {
   uint8_t location = read_byte();
   ROR_help(&memory[location + registers->x]);
 }
 
-void ROR_absolute(void) {
+static void ROR_absolute(void) {
   uint16_t location = read_word();
   ROR_help(&memory[location]);
 }
 
-void ROR_absolutex(void) {
+static void ROR_absolutex(void) {
   uint16_t location = read_word();
   ROR_help(&memory[location + registers->x]);
 }
 
-void RTI(void) {
+static void RTI(void) {
   registers->status = get_from_stack();
   registers->pc++;
 }
 
-void RTS(void) {
+static void RTS(void) {
   registers->pc = get_from_stack();
   registers->pc++;
 }
 
-void SBC_help(uint8_t amt) {
+static void SBC_help(uint8_t amt) {
   flags_t affects[] = {OVERFLOW, ZERO, NEGATIVE, CARRY};
   uint16_t result = registers->accumulator - amt - get_flag(CARRY);
   overflow_check(amt, result);
@@ -1073,132 +1245,132 @@ void SBC_help(uint8_t amt) {
   registers->accumulator = result;
 }
 
-void SBC_im(void) {
+static void SBC_im(void) {
   uint8_t value = read_byte();
   SBC_help(value);
 }
 
-void SBC_zero(void) {
+static void SBC_zero(void) {
   uint8_t location = read_byte();
   SBC_help(read_byte_at(location));
 }
 
-void SBC_zerox(void) {
+static void SBC_zerox(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
   SBC_help(value);
 }
 
-void SBC_absolute(void) {
+static void SBC_absolute(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location);
   SBC_help(value);
 }
 
-void SBC_absolutex(void) {
+static void SBC_absolutex(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->x);
   SBC_help(value);
 }
 
-void SBC_absolutey(void) {
+static void SBC_absolutey(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->y);
   SBC_help(value);
 }
 
-void SBC_indirectx(void) {
+static void SBC_indirectx(void) {
   uint16_t address = read_word();
   uint8_t *ptr = indexed_indirect(address);
   SBC_help(*ptr);
 }
 
-void SBC_indirecty(void) {
+static void SBC_indirecty(void) {
   uint16_t address = read_word();
   uint8_t *ptr = indirect_indexed(address);
   SBC_help(*ptr);
 }
 
-void SEC(void) { set_flag(CARRY, true); }
-void SED(void) { set_flag(DECIMAL, true); }
-void SEI(void) { set_flag(INTERRUPT, true); }
+static void SEC(void) { set_flag(CARRY, true); }
+static void SED(void) { set_flag(DECIMAL, true); }
+static void SEI(void) { set_flag(INTERRUPT, true); }
 
-void STA_zero(void) {
+static void STA_zero(void) {
   uint8_t location = read_byte();
   write_byte(registers->accumulator, location);
 }
 
-void STA_zerox(void) {
+static void STA_zerox(void) {
   uint8_t address = read_byte();
   write_byte(registers->accumulator, address + registers->x);
 }
 
-void STA_absolute(void) {
+static void STA_absolute(void) {
   uint16_t address = read_word();
   write_byte(registers->accumulator, address);
 }
 
-void STA_absolutex(void) {
+static void STA_absolutex(void) {
   uint16_t address = read_word();
   write_byte(registers->accumulator, address + registers->x);
 }
 
-void STA_absolutey(void) {
+static void STA_absolutey(void) {
   uint16_t address = read_word();
   write_byte(registers->accumulator, address + registers->y);
 }
 
-void STA_indirectx(void) {
+static void STA_indirectx(void) {
   uint8_t address = read_byte();
   uint8_t *ptr = indexed_indirect(address);
   *ptr = registers->accumulator;
 }
 
-void STA_indirecty(void) {
+static void STA_indirecty(void) {
   uint8_t address = read_byte();
   uint8_t *ptr = indirect_indexed(address);
   *ptr = registers->accumulator;
 }
 
-void STX_zero(void) { write_byte(registers->x, read_byte()); }
-void STX_zeroy(void) { write_byte(registers->x, read_byte()); }
-void STX_absolute(void) { write_byte(registers->x, read_word()); }
+static void STX_zero(void) { write_byte(registers->x, read_byte()); }
+static void STX_zeroy(void) { write_byte(registers->x, read_byte()); }
+static void STX_absolute(void) { write_byte(registers->x, read_word()); }
 
-void STY_zero(void) { write_byte(registers->y, read_byte()); }
-void STY_zerox(void) { write_byte(registers->y, read_byte() + registers->x); }
-void STY_absolute(void) {
+static void STY_zero(void) { write_byte(registers->y, read_byte()); }
+static void STY_zerox(void) { write_byte(registers->y, read_byte() + registers->x); }
+static void STY_absolute(void) {
   write_byte(registers->y, read_word() + registers->x);
 }
 
-void TAX(void) {
+static void TAX(void) {
   registers->x = registers->accumulator;
   zero_check(registers->x);
   negative_check(registers->x);
 }
 
-void TAY(void) {
+static void TAY(void) {
   registers->y = registers->accumulator;
   zero_check(registers->y);
   negative_check(registers->y);
 }
-void TSX(void) {
+static void TSX(void) {
   registers->x = peek_from_stack();
   zero_check(registers->x);
   negative_check(registers->x);
 }
 
-void TXA(void) {
+static void TXA(void) {
   registers->accumulator = peek_from_stack();
   zero_check(registers->accumulator);
   negative_check(registers->accumulator);
 }
-void TXS(void) {
+static void TXS(void) {
   flags_t affects[] = {ZERO, NEGATIVE};
   push_to_stack(registers->x);
   set_flags(affects, 2);
 }
 
-void TYA(void) {
+static void TYA(void) {
   registers->accumulator = registers->y;
   zero_check(registers->accumulator);
   negative_check(registers->accumulator);
