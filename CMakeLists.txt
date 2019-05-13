@@ -1,11 +1,10 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.10.2)
-PROJECT(cpu)
+PROJECT(cpu VERSION 0.0.1 DESCRIPTION "6502 emulator")
 
 include_directories(headers)
 
-file(GLOB SOURCES "src/[a-z0-9]*.c")
-file(GLOB TEST_SOURCES "tests/[a-z0-9]*.cpp" "src/cpu.cpp")
+file(GLOB SOURCES "src/cpu.c")
 
 add_definitions("-g -D DEBUG -std=c11")
-
-add_executable(cpu ${SOURCES})
+add_library(cpu SHARED ${SOURCES})
+set_target_properties(cpu PROPERTIES PUBLIC_HEADER "../headers/cpu.h")
