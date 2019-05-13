@@ -223,8 +223,75 @@ static void TSX(void);
 static void TXA(void);
 static void TXS(void);
 static void TYA(void);
+static void ASO_absolute(void);
+static void ASO_absolutex(void);
+static void ASO_absolutey(void);
+static void ASO_zero(void);
+static void ASO_zerox(void);
+static void ASO_indirectx(void);
+static void ASO_indirecty(void);
+static void RLA_absolute(void);
+static void RLA_absolutex(void);
+static void RLA_absolutey(void);
+static void RLA_zero(void);
+static void RLA_zerox(void);
+static void RLA_indirectx(void);
+static void RLA_indirecty(void);
+static void LSE_absolute(void);
+static void LSE_absolutex(void);
+static void LSE_absolutey(void);
+static void LSE_zero(void);
+static void LSE_zerox(void);
+static void LSE_indirectx(void);
+static void LSE_indirecty(void);
+static void RRA_absolute(void);
+static void RRA_absolutex(void);
+static void RRA_absolutey(void);
+static void RRA_zero(void);
+static void RRA_zerox(void);
+static void RRA_zeroy(void);
+static void RRA_indirectx(void);
+static void RRA_indirecty(void);
+static void AXS_absolute(void);
+static void AXS_absolutey(void);
+static void AXS_zero(void);
+static void AXS_zeroy(void);
+static void AXS_indirectx(void);
+static void AXS_indirecty(void);
+static void LAX_absolute(void);
+static void LAX_absolutey(void);
+static void LAX_zero(void);
+static void LAX_zeroy(void);
+static void LAX_indirectx(void);
+static void LAX_indirecty(void);
+static void DCM_help(uint8_t *address);
+static void DCM_absolute(void);
+static void DCM_absolutex(void);
+static void DCM_absolutey(void);
+static void DCM_zero(void);
+static void DCM_zerox(void);
+static void DCM_indirectx(void);
+static void DCM_indirecty(void);
+static void INS_help(uint8_t *address);
+static void INS_absolute(void);
+static void INS_absolutex(void);
+static void INS_absolutey(void);
+static void INS_zero(void);
+static void INS_zerox(void);
+static void INS_indirectx(void);
+static void INS_indirecty(void);
+static void ALR(void);
+static void TAS(void);
+static void SAY(void);
+static void AXA_absolutey(void);
+static void AXA_indirecty(void);
+static void XAS(void);
+static void SKB(void);
+static void SKW(void);
+static void HLT(void);
 
-/* this will probably be rewritten once the cpu is done */
+/* this will probably be rewritten once the cpu is done and correct file
+ * handling is made*/
 extern void initialize_cpu(const unsigned char *data, size_t size,
                            memory_map *m, processor_registers *reg) {
   if (m != NULL) {
@@ -243,188 +310,284 @@ extern void initialize_cpu(const unsigned char *data, size_t size,
   memcpy(&memory[registers->pc], &data[0x600], size - 0x600);
 }
 
+/* parser, pass data to initialize cpu and this does the rest */
 extern void interpret_opcode(void) {
   /* figure out how to reduce the amount of shit in this? */
-  static instruction_pointer instructions[255] = {[0x69] = &ADC_im,
-                                                  [0x65] = &ADC_zero,
-                                                  [0x75] = &ADC_zerox,
-                                                  [0x6D] = &ADC_absolute,
-                                                  [0x7D] = &ADC_absolutex,
-                                                  [0x79] = &ADC_absolutey,
-                                                  [0x61] = &ADC_indirectx,
-                                                  [0x71] = &ADC_indirecty,
+  static const instruction_pointer instructions[256] = {
+      [0x69] = &ADC_im,
+      [0x65] = &ADC_zero,
+      [0x75] = &ADC_zerox,
+      [0x6D] = &ADC_absolute,
+      [0x7D] = &ADC_absolutex,
+      [0x79] = &ADC_absolutey,
+      [0x61] = &ADC_indirectx,
+      [0x71] = &ADC_indirecty,
 
-                                                  [0x29] = &AND_im,
-                                                  [0x25] = &AND_zero,
-                                                  [0x35] = &AND_zerox,
-                                                  [0x2D] = &AND_absolute,
-                                                  [0x3D] = &AND_absolutex,
-                                                  [0x39] = &AND_absolutey,
-                                                  [0x21] = &AND_indirectx,
-                                                  [0x31] = &AND_indirecty,
+      [0x29] = &AND_im,
+      [0x25] = &AND_zero,
+      [0x35] = &AND_zerox,
+      [0x2D] = &AND_absolute,
+      [0x3D] = &AND_absolutex,
+      [0x39] = &AND_absolutey,
+      [0x21] = &AND_indirectx,
+      [0x31] = &AND_indirecty,
 
-                                                  [0x0A] = &ASL_accumulator,
-                                                  [0x06] = &ASL_zero,
-                                                  [0x16] = &ASL_zerox,
-                                                  [0x0E] = &ASL_absolute,
-                                                  [0x1E] = &ASL_absolutex,
+      [0x0A] = &ASL_accumulator,
+      [0x06] = &ASL_zero,
+      [0x16] = &ASL_zerox,
+      [0x0E] = &ASL_absolute,
+      [0x1E] = &ASL_absolutex,
 
-                                                  [0x90] = &BCC,
-                                                  [0xB0] = &BCS,
-                                                  [0xF0] = &BEQ,
+      [0x90] = &BCC,
+      [0xB0] = &BCS,
+      [0xF0] = &BEQ,
 
-                                                  [0x24] = &BIT_zero,
-                                                  [0x2C] = &BIT_absolute,
+      [0x24] = &BIT_zero,
+      [0x2C] = &BIT_absolute,
 
-                                                  [0x30] = &BMI,
-                                                  [0xD0] = &BNE,
-                                                  [0x10] = &BPL,
-                                                  [0x00] = &BRK,
-                                                  [0x50] = &BVC,
-                                                  [0x70] = &BVS,
+      [0x30] = &BMI,
+      [0xD0] = &BNE,
+      [0x10] = &BPL,
+      [0x00] = &BRK,
+      [0x50] = &BVC,
+      [0x70] = &BVS,
 
-                                                  [0x18] = &CLC,
-                                                  [0xD8] = &CLD,
-                                                  [0x58] = &CLI,
-                                                  [0xB8] = &CLV,
+      [0x18] = &CLC,
+      [0xD8] = &CLD,
+      [0x58] = &CLI,
+      [0xB8] = &CLV,
 
-                                                  [0xC9] = &CMP_im,
-                                                  [0xC5] = &CMP_zero,
-                                                  [0xD5] = &CMP_zerox,
-                                                  [0xCD] = &CMP_absolute,
-                                                  [0xDD] = &CMP_absolutex,
-                                                  [0xD9] = &CMP_absolutey,
-                                                  [0xC1] = &CMP_indirectx,
-                                                  [0xD1] = &CMP_indirecty,
+      [0xC9] = &CMP_im,
+      [0xC5] = &CMP_zero,
+      [0xD5] = &CMP_zerox,
+      [0xCD] = &CMP_absolute,
+      [0xDD] = &CMP_absolutex,
+      [0xD9] = &CMP_absolutey,
+      [0xC1] = &CMP_indirectx,
+      [0xD1] = &CMP_indirecty,
 
-                                                  [0xE0] = &CPX_im,
-                                                  [0xE4] = &CPX_zero,
-                                                  [0xEC] = &CPX_absolute,
-                                                  [0xC0] = &CPY_im,
-                                                  [0xC4] = &CPY_zero,
-                                                  [0xCC] = &CPY_absolute,
+      [0xE0] = &CPX_im,
+      [0xE4] = &CPX_zero,
+      [0xEC] = &CPX_absolute,
+      [0xC0] = &CPY_im,
+      [0xC4] = &CPY_zero,
+      [0xCC] = &CPY_absolute,
 
-                                                  [0xC6] = &DEC_zero,
-                                                  [0xD6] = &DEC_zerox,
-                                                  [0xCE] = &DEC_absolute,
-                                                  [0xDE] = &DEC_absolutex,
-                                                  [0xCA] = &DEX,
-                                                  [0x88] = &DEY,
+      [0xC6] = &DEC_zero,
+      [0xD6] = &DEC_zerox,
+      [0xCE] = &DEC_absolute,
+      [0xDE] = &DEC_absolutex,
+      [0xCA] = &DEX,
+      [0x88] = &DEY,
 
-                                                  [0x49] = &EOR_im,
-                                                  [0x45] = &EOR_zero,
-                                                  [0x55] = &EOR_zerox,
-                                                  [0x4D] = &EOR_absolute,
-                                                  [0x5D] = &EOR_absolutex,
-                                                  [0x59] = &EOR_absolutey,
-                                                  [0x41] = &EOR_indirectx,
-                                                  [0x51] = &EOR_indirecty,
+      [0x49] = &EOR_im,
+      [0x45] = &EOR_zero,
+      [0x55] = &EOR_zerox,
+      [0x4D] = &EOR_absolute,
+      [0x5D] = &EOR_absolutex,
+      [0x59] = &EOR_absolutey,
+      [0x41] = &EOR_indirectx,
+      [0x51] = &EOR_indirecty,
 
-                                                  [0xE6] = &INC_zero,
-                                                  [0xF6] = &INC_zerox,
-                                                  [0xEE] = &INC_absolute,
-                                                  [0xFE] = &INC_absolutex,
-                                                  [0xE8] = &INX,
-                                                  [0xC8] = &INY,
-                                                  [0x4C] = &JMP_absolute,
-                                                  [0x6C] = &JMP_indirect,
-                                                  [0x20] = &JSR,
+      [0xE6] = &INC_zero,
+      [0xF6] = &INC_zerox,
+      [0xEE] = &INC_absolute,
+      [0xFE] = &INC_absolutex,
+      [0xE8] = &INX,
+      [0xC8] = &INY,
+      [0x4C] = &JMP_absolute,
+      [0x6C] = &JMP_indirect,
+      [0x20] = &JSR,
 
-                                                  [0xA9] = &LDA_im,
-                                                  [0xA5] = &LDA_zero,
-                                                  [0xB5] = &LDA_zerox,
-                                                  [0xAD] = &LDA_absolute,
-                                                  [0xBD] = &LDA_absolutex,
-                                                  [0xB9] = &LDA_absolutey,
-                                                  [0xA1] = &LDA_indirectx,
-                                                  [0xB1] = &LDA_indirecty,
+      [0xA9] = &LDA_im,
+      [0xA5] = &LDA_zero,
+      [0xB5] = &LDA_zerox,
+      [0xAD] = &LDA_absolute,
+      [0xBD] = &LDA_absolutex,
+      [0xB9] = &LDA_absolutey,
+      [0xA1] = &LDA_indirectx,
+      [0xB1] = &LDA_indirecty,
 
-                                                  [0xA2] = &LDX_im,
-                                                  [0xA6] = &LDX_zero,
-                                                  [0xB6] = &LDX_zeroy,
-                                                  [0xAE] = &LDX_absolute,
-                                                  [0xBE] = &LDX_absolutey,
-                                                  [0xA0] = &LDY_im,
-                                                  [0xA4] = &LDY_zero,
-                                                  [0xB4] = &LDY_zerox,
-                                                  [0xAC] = &LDY_absolute,
-                                                  [0xBC] = &LDY_absolutex,
+      [0xA2] = &LDX_im,
+      [0xA6] = &LDX_zero,
+      [0xB6] = &LDX_zeroy,
+      [0xAE] = &LDX_absolute,
+      [0xBE] = &LDX_absolutey,
+      [0xA0] = &LDY_im,
+      [0xA4] = &LDY_zero,
+      [0xB4] = &LDY_zerox,
+      [0xAC] = &LDY_absolute,
+      [0xBC] = &LDY_absolutex,
 
-                                                  [0x4A] = &LSR_accumulator,
-                                                  [0x46] = &LSR_zero,
-                                                  [0x56] = &LSR_zerox,
-                                                  [0x4E] = &LSR_absolute,
-                                                  [0x5E] = &LSR_absolutex,
+      [0x4A] = &LSR_accumulator,
+      [0x46] = &LSR_zero,
+      [0x56] = &LSR_zerox,
+      [0x4E] = &LSR_absolute,
+      [0x5E] = &LSR_absolutex,
 
-                                                  [0xEA] = &NOP,
 
-                                                  [0x05] = &ORA_im,
-                                                  [0x09] = &ORA_zero,
-                                                  [0x15] = &ORA_zerox,
-                                                  [0x0D] = &ORA_absolute,
-                                                  [0x1D] = &ORA_absolutex,
-                                                  [0x19] = &ORA_absolutey,
-                                                  [0x01] = &ORA_indirectx,
-                                                  [0x11] = &ORA_indirecty,
+      [0x05] = &ORA_im,
+      [0x09] = &ORA_zero,
+      [0x15] = &ORA_zerox,
+      [0x0D] = &ORA_absolute,
+      [0x1D] = &ORA_absolutex,
+      [0x19] = &ORA_absolutey,
+      [0x01] = &ORA_indirectx,
+      [0x11] = &ORA_indirecty,
 
-                                                  [0x48] = &PHA,
-                                                  [0x08] = &PHP,
-                                                  [0x68] = &PLA,
-                                                  [0x28] = &PLP,
+      [0x48] = &PHA,
+      [0x08] = &PHP,
+      [0x68] = &PLA,
+      [0x28] = &PLP,
 
-                                                  [0x2A] = &ROL_accumulator,
-                                                  [0x26] = &ROL_zero,
-                                                  [0x36] = &ROL_zerox,
-                                                  [0x2e] = &ROL_absolute,
-                                                  [0x3e] = &ROL_absolutex,
+      [0x2A] = &ROL_accumulator,
+      [0x26] = &ROL_zero,
+      [0x36] = &ROL_zerox,
+      [0x2e] = &ROL_absolute,
+      [0x3e] = &ROL_absolutex,
 
-                                                  [0x6a] = &ROR_accumulator,
-                                                  [0x66] = &ROR_zero,
-                                                  [0x76] = &ROR_zerox,
-                                                  [0x6e] = &ROR_absolute,
-                                                  [0x7e] = &ROR_absolutex,
+      [0x6a] = &ROR_accumulator,
+      [0x66] = &ROR_zero,
+      [0x76] = &ROR_zerox,
+      [0x6e] = &ROR_absolute,
+      [0x7e] = &ROR_absolutex,
 
-                                                  [0x40] = &RTI,
-                                                  [0x60] = &RTS,
-                                                  [0xE9] = &SBC_im,
-                                                  [0xE5] = &SBC_zero,
-                                                  [0xF5] = &SBC_zerox,
-                                                  [0xED] = &SBC_absolute,
-                                                  [0xFD] = &SBC_absolutex,
-                                                  [0xF9] = &SBC_absolutey,
-                                                  [0xE1] = &SBC_indirectx,
-                                                  [0xF1] = &SBC_indirecty,
+      [0x40] = &RTI,
+      [0x60] = &RTS,
+      [0xE9] = &SBC_im,
+      [0xE5] = &SBC_zero,
+      [0xF5] = &SBC_zerox,
+      [0xED] = &SBC_absolute,
+      [0xFD] = &SBC_absolutex,
+      [0xF9] = &SBC_absolutey,
+      [0xE1] = &SBC_indirectx,
+      [0xF1] = &SBC_indirecty,
 
-                                                  [0x38] = &SEC,
-                                                  [0xF8] = &SED,
-                                                  [0x78] = &SEI,
+      [0x38] = &SEC,
+      [0xF8] = &SED,
+      [0x78] = &SEI,
 
-                                                  [0x85] = &STA_zero,
-                                                  [0x95] = &STA_zerox,
-                                                  [0x8d] = &STA_absolute,
-                                                  [0x9d] = &STA_absolutex,
-                                                  [0x99] = &STA_absolutey,
-                                                  [0x81] = &STA_indirectx,
-                                                  [0x91] = &STA_indirecty,
-                                                  [0x86] = &STX_zero,
-                                                  [0x96] = &STX_zeroy,
-                                                  [0x8e] = &STX_absolute,
-                                                  [0x84] = &STY_zero,
-                                                  [0x94] = &STY_zerox,
-                                                  [0x8c] = &STY_absolute,
+      [0x85] = &STA_zero,
+      [0x95] = &STA_zerox,
+      [0x8d] = &STA_absolute,
+      [0x9d] = &STA_absolutex,
+      [0x99] = &STA_absolutey,
+      [0x81] = &STA_indirectx,
+      [0x91] = &STA_indirecty,
+      [0x86] = &STX_zero,
+      [0x96] = &STX_zeroy,
+      [0x8e] = &STX_absolute,
+      [0x84] = &STY_zero,
+      [0x94] = &STY_zerox,
+      [0x8c] = &STY_absolute,
 
-                                                  [0xaa] = &TAX,
-                                                  [0xa8] = &TAY,
-                                                  [0xba] = &TSX,
-                                                  [0x8a] = &TXA,
-                                                  [0x9a] = &TXS,
-                                                  [0x98] = &TYA};
+      [0xaa] = &TAX,
+      [0xa8] = &TAY,
+      [0xba] = &TSX,
+      [0x8a] = &TXA,
+      [0x9a] = &TXS,
+      [0x98] = &TYA,
+
+      [0x0F] = &ASO_absolute,
+      [0x1F] = &ASO_absolutex,
+      [0x1B] = &ASO_absolutey,
+      [0x07] = &ASO_zero,
+      [0x17] = &ASO_zerox,
+      [0x03] = &ASO_indirectx,
+      [0x13] = &ASO_indirecty,
+      [0x2F] = &RLA_absolute,
+      [0x3F] = &RLA_absolutex,
+      [0x3B] = &RLA_absolutey,
+      [0x27] = &RLA_zero,
+      [0x37] = &RLA_zerox,
+      [0x23] = &RLA_indirectx,
+      [0x33] = &RLA_indirecty,
+      [0x4F] = &LSE_absolute,
+      [0x5F] = &LSE_absolutex,
+      [0x5B] = &LSE_absolutey,
+      [0x47] = &LSE_zero,
+      [0x57] = &LSE_zerox,
+      [0x43] = &LSE_indirectx,
+      [0x53] = &LSE_indirecty,
+      [0x6F] = &RRA_absolute,
+      [0x7F] = &RRA_absolutex,
+      [0x7B] = &RRA_absolutey,
+      [0x67] = &RRA_zero,
+      [0x77] = &RRA_zerox,
+      [0x63] = &RRA_indirectx,
+      [0x73] = &RRA_indirecty,
+      [0x8F] = &AXS_absolute,
+      [0x87] = &AXS_zero,
+      [0x97] = &AXS_zeroy,
+      [0x83] = &AXS_indirectx,
+      [0xAF] = &LAX_absolute,
+      [0xA7] = &LAX_zero,
+      [0xB7] = &LAX_zeroy,
+      [0xA3] = &LAX_indirectx,
+      [0xCF] = &DCM_absolute,
+      [0xDF] = &DCM_absolutex,
+      [0xDB] = &DCM_absolutey,
+      [0xC7] = &DCM_zero,
+      [0xD7] = &DCM_zerox,
+      [0xC3] = &DCM_indirectx,
+      [0xD3] = &DCM_indirecty,
+      [0xEF] = &INS_absolute,
+      [0xFF] = &INS_absolutex,
+      [0xFB] = &INS_absolutey,
+      [0xE7] = &INS_zero,
+      [0xF7] = &INS_zerox,
+      [0xE3] = &INS_indirectx,
+      [0xF3] = &INS_indirecty,
+      [0x9B] = &TAS,
+      [0x9C] = &SAY,
+      [0x9E] = &XAS,
+      [0x9F] = &AXA_absolutey,
+      [0x93] = &AXA_indirecty,
+
+      [0xEA] = &NOP,
+      [0x80] = &NOP,
+      [0x82] = &NOP,
+      [0xC2] = &NOP,
+      [0xE2] = &NOP,
+      [0x04] = &NOP,
+      [0x14] = &NOP,
+      [0x34] = &NOP,
+      [0x44] = &NOP,
+      [0x54] = &NOP,
+      [0x64] = &NOP,
+      [0x74] = &NOP,
+      [0xD4] = &NOP,
+      [0xF4] = &NOP,
+
+
+      [0x0C] = &SKW,
+      [0x1C] = &SKW,
+      [0x3C] = &SKW,
+      [0x5C] = &SKW,
+      [0x7C] = &SKW,
+      [0x89] = &SKW,
+      [0xDC] = &SKW,
+      [0xFC] = &SKW,
+
+      [0x02] = &HLT,
+      [0x12] = &HLT,
+      [0x22] = &HLT,
+      [0x32] = &HLT,
+      [0x42] = &HLT,
+      [0x52] = &HLT,
+      [0x62] = &HLT,
+      [0x72] = &HLT,
+      [0x92] = &HLT,
+      [0xB2] = &HLT,
+      [0xD2] = &HLT,
+      [0xF2] = &HLT};
+
   unsigned char opcode = read_byte();
 
   if (instructions[opcode]) {
     instructions[opcode]();
   } else {
-    printf("invalid opcode: %X\n", opcode);
+    printf("\033[1;31m invalid opcode: %x\033[0m\n", opcode);
     printf("PC: %x\n", registers->pc);
   }
 }
@@ -434,7 +597,7 @@ static inline void push_to_stack(unsigned char value) {
 }
 
 static inline unsigned char get_from_stack(void) {
-  return registers->stack_pointer[registers->_sp--];
+  return registers->stack_pointer[--registers->_sp];
 }
 
 static inline unsigned char peek_from_stack(void) {
@@ -453,43 +616,20 @@ static inline uint8_t *indirect_indexed(uint8_t address) {
   return &memory[location + registers->y];
 }
 
+static inline uint8_t *dereference_address(uint8_t address) {
+  return &memory[address];
+}
+
 static inline void set_flag(flags_t flag, bool b) {
   if (get_flag(flag) != b) {
     registers->status ^= flag;
   }
 }
 
-static void set_flags(flags_t *flags, int n) {
-  /* this will be left in for now, might be taken back into use later */
-  for (int i = 0; i < n; i++) {
-    switch (flags[i]) {
-    case OVERFLOW:
-      break;
-    case ZERO:
-      if (registers->accumulator == 0)
-        set_flag(ZERO, true);
-      break;
-    case INTERRUPT:
-      /* TODO */
-      break;
-    case DECIMAL:
-      /* TODO */
-      break;
-    case CARRY:
-      if (registers->accumulator > CHAR_MAX)
-        set_flag(OVERFLOW, true);
-      break;
-    case BREAK:
-      break;
-    case NEGATIVE:
-      break;
-    }
-  }
-}
-
 static inline uint8_t get_flag(flags_t flag) {
   /* !! to turn it into a 1 or 0 to not require shifting and
-     looking up the power of two it is */
+   * looking up the power of two it is, also this is faster than doing
+   * status &= ~flag */
   return !!(registers->status & flag);
 }
 
@@ -532,6 +672,7 @@ static inline void negative_check(uint8_t value) {
   }
 }
 static inline void overflow_check(uint16_t value, uint16_t result) {
+  /* algo to check if there's been an overflow, google for more info */
   if ((result ^ registers->accumulator) & (result ^ value) & 0x80) {
     set_flag(OVERFLOW, true);
   } else {
@@ -547,7 +688,7 @@ static inline void carry_check(uint16_t value) {
   }
 }
 
-void ADC_help(uint16_t value) {
+static void ADC_help(uint16_t value) {
   uint16_t result = registers->accumulator + value + get_flag(CARRY);
   overflow_check(value, result);
   carry_check(result);
@@ -747,7 +888,7 @@ static void CLI(void) { set_flag(INTERRUPT, false); }
 static void CLV(void) { set_flag(OVERFLOW, false); }
 
 /* this is for all compare instructions */
-void cmp_help(unsigned char value, unsigned char reg) {
+static void cmp_help(unsigned char value, unsigned char reg) {
   if (reg == value) {
     set_flag(ZERO, true);
   } else if (reg >= value) {
@@ -759,7 +900,7 @@ void cmp_help(unsigned char value, unsigned char reg) {
   }
 }
 
-void CMP_help(unsigned char value) { cmp_help(value, registers->accumulator); }
+static void CMP_help(unsigned char value) { cmp_help(value, registers->accumulator); }
 
 static void CMP_im(void) {
   unsigned char value = read_byte();
@@ -829,7 +970,7 @@ static void CPX_absolute(void) {
   CPX_help(value);
 }
 
-void CPY_help(unsigned char value) { cmp_help(value, registers->y); }
+static void CPY_help(unsigned char value) { cmp_help(value, registers->y); }
 
 static void CPY_im(void) {
   uint8_t value = read_byte();
@@ -941,8 +1082,7 @@ static void EOR_indirecty(void) {
   EOR_help(value);
 }
 
-void INC_help(uint16_t location) {
-  flags_t affects[] = {ZERO, NEGATIVE};
+static void INC_help(uint16_t location) {
   memory[location]++;
   zero_check(memory[location]);
   negative_check(memory[location]);
@@ -1068,7 +1208,6 @@ static void LDY_absolute(void) { LDY_help(memory[read_word()]); }
 static void LDY_absolutex(void) { LDY_help(memory[read_word() + registers->y]); }
 
 static void LSR_help(uint8_t *value) {
-  flags_t affects[] = {ZERO, CARRY, NEGATIVE};
   *value >>= 1;
   carry_check(*value);
   zero_check(*value);
@@ -1079,28 +1218,27 @@ static void LSR_accumulator(void) { LSR_help(&registers->accumulator); }
 
 static void LSR_zero(void) {
   uint8_t location = read_byte();
-  LSR_help(&memory[location]);
+  LSR_help(dereference_address(location));
 }
 
 static void LSR_zerox(void) {
   uint8_t location = read_byte();
-  LSR_help(&memory[location + registers->x]);
+  LSR_help(dereference_address(location + registers->x));
 }
 
 static void LSR_absolute(void) {
   uint16_t location = read_word();
-  LSR_help(&memory[location]);
+  LSR_help(dereference_address(location));
 }
 
 static void LSR_absolutex(void) {
   uint16_t location = read_word();
-  LSR_help(&memory[location + registers->x]);
+  LSR_help(dereference_address(location + registers->x));
 }
 
 static void NOP(void) { registers->pc++; }
 
 static void ORA_help(uint16_t value) {
-  flags_t affected[] = {ZERO, NEGATIVE};
   registers->accumulator |= read_byte();
   zero_check(registers->accumulator);
   negative_check(registers->accumulator);
@@ -1176,22 +1314,22 @@ static void ROL_accumulator(void) { ROL_help(&registers->accumulator); }
 
 static void ROL_zero(void) {
   uint8_t location = read_byte();
-  ROL_help(&memory[location]);
+  ROL_help(dereference_address(location));
 }
 
 static void ROL_zerox(void) {
   uint8_t location = read_byte();
-  ROL_help(&memory[location + registers->x]);
+  ROL_help(dereference_address(location + registers->x));
 }
 
 static void ROL_absolute(void) {
   uint16_t location = read_word();
-  ROL_help(&memory[location]);
+  ROL_help(dereference_address(location));
 }
 
 static void ROL_absolutex(void) {
   uint16_t location = read_word();
-  ROL_help(&memory[location + registers->x]);
+  ROL_help(dereference_address(location + registers->x));
 }
 
 void ROR_help(uint8_t *location) {
@@ -1207,22 +1345,22 @@ static void ROR_accumulator(void) { ROR_help(&registers->accumulator); }
 
 static void ROR_zero(void) {
   uint8_t location = read_byte();
-  ROR_help(&memory[location]);
+  ROR_help(dereference_address(location));
 }
 
 static void ROR_zerox(void) {
   uint8_t location = read_byte();
-  ROR_help(&memory[location + registers->x]);
+  ROR_help(dereference_address(location + registers->x));
 }
 
 static void ROR_absolute(void) {
   uint16_t location = read_word();
-  ROR_help(&memory[location]);
+  ROR_help(dereference_address(location));
 }
 
 static void ROR_absolutex(void) {
   uint16_t location = read_word();
-  ROR_help(&memory[location + registers->x]);
+  ROR_help(dereference_address(location + registers->x));
 }
 
 static void RTI(void) {
@@ -1236,7 +1374,6 @@ static void RTS(void) {
 }
 
 static void SBC_help(uint8_t amt) {
-  flags_t affects[] = {OVERFLOW, ZERO, NEGATIVE, CARRY};
   uint16_t result = registers->accumulator - amt - get_flag(CARRY);
   overflow_check(amt, result);
   carry_check(result);
@@ -1365,13 +1502,444 @@ static void TXA(void) {
   negative_check(registers->accumulator);
 }
 static void TXS(void) {
-  flags_t affects[] = {ZERO, NEGATIVE};
   push_to_stack(registers->x);
-  set_flags(affects, 2);
+  zero_check(registers->x);
+  negative_check(registers->x);
 }
 
 static void TYA(void) {
   registers->accumulator = registers->y;
   zero_check(registers->accumulator);
   negative_check(registers->accumulator);
+}
+
+/* UNDOCUMENTED OPCODES */
+/* SOURCE: http://www.ffd2.com/fridge/docs/6502-NMOS.extra.opcodes */
+
+/* add status flags for the following ones, might be unnecessary tbh, because of
+ * the fact they're done in the helper functions */
+static void SKW(void) {
+  read_word();
+}
+
+static void HLT(void) {
+  exit(1);
+}
+
+static void ASO_absolute(void) {
+  uint16_t location = read_word();
+  uint8_t *value_ptr= dereference_address(location);
+  ASL_help(value_ptr);
+  ORA_help(*value_ptr);
+}
+
+static void ASO_absolutex(void) {
+  uint16_t location = read_word();
+  uint8_t *value_ptr = dereference_address(location + registers->x);
+  ASL_help(value_ptr);
+  ORA_help(*value_ptr);
+}
+
+static void ASO_absolutey(void) {
+  uint16_t location = read_word();
+  uint8_t *value_ptr = dereference_address(location + registers->y);
+  ASL_help(value_ptr);
+  ORA_help(*value_ptr);
+}
+
+static void ASO_zero(void) {
+  uint8_t location = read_byte();
+  uint8_t *value = dereference_address(location);
+  ASL_help(value);
+  ORA_help(*value);
+}
+
+static void ASO_zerox(void) {
+  uint8_t location = read_byte();
+  uint8_t *value = &memory[location + registers->x];
+  ASL_help(value);
+  ORA_help(*value);
+}
+
+static void ASO_indirectx(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = indexed_indirect(address);
+  ASL_help(dereferenced);
+  ORA_help(*dereferenced);
+}
+
+static void ASO_indirecty(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = indirect_indexed(address);
+  ASL_help(dereferenced);
+  ORA_help(*dereferenced);
+}
+
+static void RLA_absolute(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address);
+  ROL_help(dereferenced);
+  AND_help(*dereferenced);
+}
+
+static void RLA_absolutex(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address + registers->x);
+  ROL_help(dereferenced);
+  AND_help(*dereferenced);
+}
+
+static void RLA_absolutey(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address + registers->y);
+  ROL_help(dereferenced);
+  AND_help(*dereferenced);
+}
+
+static void RLA_zero(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = dereference_address(address);
+  ROL_help(dereferenced);
+  AND_help(*dereferenced);
+}
+
+static void RLA_zerox(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = dereference_address(address + registers->x);
+  ROL_help(dereferenced);
+  AND_help(*dereferenced);
+}
+
+static void RLA_indirectx(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = indexed_indirect(address);
+  ROL_help(dereferenced);
+  AND_help(*dereferenced);
+}
+
+static void RLA_indirecty(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = indirect_indexed(address);
+  ROL_help(dereferenced);
+  AND_help(*dereferenced);
+}
+
+static void LSE_absolute(void) {
+  uint16_t location = read_word();
+  uint8_t *value_ptr = dereference_address(location);
+  LSR_help(value_ptr);
+  EOR_help(*value_ptr);
+}
+
+static void LSE_absolutex(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address + registers->x);
+  LSR_help(dereferenced);
+  EOR_help(*dereferenced);
+}
+
+static void LSE_absolutey(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address + registers->y);
+  LSR_help(dereferenced);
+  EOR_help(*dereferenced);
+}
+
+static void LSE_zero(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = dereference_address(address);
+  LSR_help(dereferenced);
+  EOR_help(*dereferenced);
+}
+
+static void LSE_zerox(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = dereference_address(address);
+  LSR_help(dereferenced);
+  EOR_help(*dereferenced);
+}
+
+static void LSE_indirectx(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = indexed_indirect(address);
+  LSR_help(dereferenced);
+  EOR_help(*dereferenced);
+}
+
+static void LSE_indirecty(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = indirect_indexed(address);
+  LSR_help(dereferenced);
+  EOR_help(*dereferenced);
+}
+
+static void RRA_absolute(void){
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address);
+  ROR_help(dereferenced);
+  ADC_help(*dereferenced);
+}
+
+static void RRA_absolutex(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address + registers->x);
+  ROR_help(dereferenced);
+  ADC_help(*dereferenced);
+}
+
+static void RRA_absolutey(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address + registers->y);
+  ROR_help(dereferenced);
+  ADC_help(*dereferenced);
+}
+
+static void RRA_zero(void) {
+  uint16_t address = read_byte();
+  uint8_t *dereferenced = dereference_address(address);
+  ROR_help(dereferenced);
+  ADC_help(*dereferenced);
+}
+
+static void RRA_zerox(void) {
+  uint16_t address = read_byte();
+  uint8_t *dereferenced = dereference_address(address + registers->x);
+  ROR_help(dereferenced);
+  ADC_help(*dereferenced);
+}
+
+static void RRA_zeroy(void) {
+  uint16_t address = read_byte();
+  uint8_t *dereferenced = dereference_address(address + registers->y);
+  ROR_help(dereferenced);
+  ADC_help(*dereferenced);
+}
+
+static void RRA_indirectx(void) {
+  uint16_t address = read_byte();
+  uint8_t *dereferenced = indexed_indirect(address);
+  ROR_help(dereferenced);
+  ADC_help(*dereferenced);
+}
+
+static void RRA_indirecty(void) {
+  uint16_t address = read_byte();
+  uint8_t *dereferenced = indirect_indexed(address);
+  ROR_help(dereferenced);
+  ADC_help(*dereferenced);
+}
+
+static void AXS_absolute(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address);
+  *dereferenced = registers->accumulator & registers->x;
+}
+
+static void AXS_absolutey(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address + registers->x);
+  *dereferenced = registers->accumulator & registers->x;
+}
+
+static void AXS_zero(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = dereference_address(address);
+  *dereferenced = registers->accumulator & registers->x;
+}
+
+static void AXS_zeroy(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = dereference_address(address + registers->y);
+  *dereferenced = registers->accumulator & registers->x;
+}
+
+static void AXS_indirectx(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = indexed_indirect(address);
+  *dereferenced = registers->accumulator & registers->x;
+}
+
+static void AXS_indirecty(void) {
+  uint8_t address = read_byte();
+  uint8_t *dereferenced = indirect_indexed(address);
+  *dereferenced = registers->accumulator & registers->x;
+}
+
+static void LAX_absolute(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address);
+  registers->x = *dereferenced;
+  registers->accumulator = *dereferenced;
+}
+
+static void LAX_absolutey(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address + registers->y);
+  registers->x = *dereferenced;
+  registers->accumulator = *dereferenced;
+}
+
+static void LAX_zero(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address);
+  registers->x = *dereferenced;
+  registers->accumulator = *dereferenced;
+}
+
+static void LAX_zeroy(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = dereference_address(address + registers->y);
+  registers->x = *dereferenced;
+  registers->accumulator = *dereferenced;
+}
+
+static void LAX_indirectx(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = indexed_indirect(address);
+  registers->x = *dereferenced;
+  registers->accumulator = *dereferenced;
+}
+
+static void LAX_indirecty(void) {
+  uint16_t address = read_word();
+  uint8_t *dereferenced = indexed_indirect(address);
+  registers->x = *dereferenced;
+  registers->accumulator = *dereferenced;
+}
+
+static void DCM_help(uint8_t *address) {
+  (*address)--;
+  cmp_help(*address, registers->accumulator);
+}
+
+static void DCM_absolute(void) {
+  uint16_t address = read_word();
+  DCM_help(dereference_address(address));
+}
+
+static void DCM_absolutex(void) {
+  uint16_t address = read_word();
+  DCM_help(dereference_address(address + registers->x));
+}
+
+static void DCM_absolutey(void) {
+  uint16_t address = read_word();
+  DCM_help(dereference_address(address + registers->y));
+}
+
+static void DCM_zero(void) {
+  uint8_t address = read_byte();
+  DCM_help(dereference_address(address));
+}
+
+static void DCM_zerox(void) {
+  uint8_t address = read_byte();
+  DCM_help(dereference_address(address + registers->x));
+}
+
+static void DCM_indirectx(void) {
+  uint8_t address = read_byte();
+  DCM_help(indexed_indirect(address));
+}
+
+static void DCM_indirecty(void) {
+  uint8_t address = read_byte();
+  DCM_help(indirect_indexed(address));
+}
+
+static void INS_help(uint8_t *address) {
+  *address++;
+  SBC_help(*address);
+}
+
+static void INS_absolute(void) {
+	uint16_t address = read_word();
+	INS_help(dereference_address(address));
+}
+
+static void INS_absolutex(void) {
+	uint16_t address = read_word();
+	INS_help(dereference_address(address + registers->x));
+}
+
+static void INS_absolutey(void) {
+	uint16_t address = read_word();
+	INS_help(dereference_address(address + registers->y));
+}
+
+static void INS_zero(void) {
+	uint8_t address = read_byte();
+  INS_help(dereference_address(address));
+}
+
+static void INS_zerox(void) {
+	uint8_t address = read_byte();
+  INS_help(dereference_address(address + registers->x));
+}
+
+static void INS_indirectx(void) {
+	uint8_t address = read_byte();
+  INS_help(indexed_indirect(address));
+}
+
+static void INS_indirecty(void) {
+	uint8_t address = read_byte();
+  INS_help(indirect_indexed(address));
+}
+
+static void ALR(void) {
+  uint8_t value = read_byte();
+  AND_help(value);
+  LSR_help(&registers->accumulator);
+}
+
+static void TAS(void) {
+  uint16_t location = read_word();
+  uint8_t tmp = registers->accumulator & registers->x;
+
+  push_to_stack(registers->x);
+  tmp &=  ((location >> 8) + 1);
+
+  memory[location + registers->y] = tmp;
+}
+
+/* essentially the same as XAS but for Y register */
+static void SAY(void) {
+  uint16_t location = read_word();
+  uint8_t value = registers->y & 0xf;
+  memory[location + registers->x] = value;
+}
+
+static void XAS(void) {
+  uint16_t location = read_word();
+  uint8_t value = registers->x & 0xf;
+  memory[location + registers->x] = value;
+}
+
+/* TODO */
+static void AXA_absolutey(void) {
+  uint16_t location = read_word();
+  uint8_t written = registers->accumulator & registers->x & ((location >> 8) + 1);
+  write_byte(written, location + registers->y);
+}
+
+static void AXA_indirecty(void) {
+  uint8_t location = read_byte();
+  uint8_t written = registers->accumulator & registers->x & (location + 1);
+  write_byte(written, *indirect_indexed(location));
+}
+
+/* only has immediate */
+static void ANC(void) {
+  uint8_t value = read_byte();
+  registers->accumulator &= value;
+  set_flag(CARRY, !!(registers->accumulator & NEGATIVE));
+}
+
+static void LAS(void) {
+  uint16_t location = read_word();
+  registers->accumulator = read_byte_at(location) & peek_from_stack();
+
+  negative_check(registers->accumulator);
+  zero_check(registers->accumulator);
 }
