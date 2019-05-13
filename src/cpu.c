@@ -52,37 +52,54 @@ static processor_registers *registers = &_registers;
 static memory_map _memory;
 static unsigned char *memory = (unsigned char *)&_memory;
 
-static void ADC_help(uint16_t value);
-static void ADC_im(void);
-static void ADC_zero(void);
-static void ADC_zerox(void);
-static void ADC_zeroy(void);
 static void ADC_absolute(void);
 static void ADC_absolutex(void);
 static void ADC_absolutey(void);
+static void ADC_help(uint16_t value);
+static void ADC_im(void);
 static void ADC_indirectx(void);
 static void ADC_indirecty(void);
-static void AND_help(uint8_t value);
-static void AND_im(void);
-static void AND_zero(void);
-static void AND_zerox(void);
+static void ADC_zero(void);
+static void ADC_zerox(void);
+static void ADC_zeroy(void);
+static void ALR(void);
+static void ANC(void);
 static void AND_absolute(void);
 static void AND_absolutex(void);
 static void AND_absolutey(void);
+static void AND_help(uint8_t value);
+static void AND_im(void);
 static void AND_indirectx(void);
 static void AND_indirecty(void);
-static void ASL_help(uint8_t *address);
-static void ASL_accumulator(void);
-static void ASL_zero(void);
-static void ASL_zerox(void);
+static void AND_zero(void);
+static void AND_zerox(void);
 static void ASL_absolute(void);
 static void ASL_absolutex(void);
+static void ASL_accumulator(void);
+static void ASL_help(uint8_t *address);
+static void ASL_zero(void);
+static void ASL_zerox(void);
+static void ASO_absolute(void);
+static void ASO_absolutex(void);
+static void ASO_absolutey(void);
+static void ASO_indirectx(void);
+static void ASO_indirecty(void);
+static void ASO_zero(void);
+static void ASO_zerox(void);
+static void AXA_absolutey(void);
+static void AXA_indirecty(void);
+static void AXS_absolute(void);
+static void AXS_absolutey(void);
+static void AXS_indirectx(void);
+static void AXS_indirecty(void);
+static void AXS_zero(void);
+static void AXS_zeroy(void);
 static void BCC(void);
 static void BCS(void);
 static void BEQ(void);
+static void BIT_absolute(void);
 static void BIT_help(uint16_t bit_test);
 static void BIT_zero(void);
-static void BIT_absolute(void);
 static void BMI(void);
 static void BNE(void);
 static void BPL(void);
@@ -93,202 +110,204 @@ static void CLC(void);
 static void CLD(void);
 static void CLI(void);
 static void CLV(void);
-static void cmp_help(unsigned char value, unsigned char reg);
-static void CMP_help(unsigned char value);
-static void CMP_im(void);
-static void CMP_zero(void);
-static void CMP_zerox(void);
 static void CMP_absolute(void);
 static void CMP_absolutex(void);
 static void CMP_absolutey(void);
+static void CMP_help(unsigned char value);
+static void CMP_im(void);
 static void CMP_indirectx(void);
 static void CMP_indirecty(void);
+static void CMP_zero(void);
+static void CMP_zerox(void);
+static void CPX_absolute(void);
 static void CPX_help(unsigned char value);
 static void CPX_im(void);
 static void CPX_zero(void);
-static void CPX_absolute(void);
+static void CPY_absolute(void);
 static void CPY_help(unsigned char value);
 static void CPY_im(void);
 static void CPY_zero(void);
-static void CPY_absolute(void);
+static void DCM_absolute(void);
+static void DCM_absolutex(void);
+static void DCM_absolutey(void);
+static void DCM_help(uint8_t *address);
+static void DCM_indirectx(void);
+static void DCM_indirecty(void);
+static void DCM_zero(void);
+static void DCM_zerox(void);
+static void DEC_absolute(void);
+static void DEC_absolutex(void);
 static void DEC_help(uint16_t location);
 static void DEC_zero(void);
 static void DEC_zerox(void);
-static void DEC_absolute(void);
-static void DEC_absolutex(void);
 static void DEX(void);
 static void DEY(void);
-static void EOR_help(uint8_t value);
-static void EOR_im(void);
-static void EOR_zero(void);
-static void EOR_zerox(void);
 static void EOR_absolute(void);
 static void EOR_absolutex(void);
 static void EOR_absolutey(void);
+static void EOR_help(uint8_t value);
+static void EOR_im(void);
 static void EOR_indirectx(void);
 static void EOR_indirecty(void);
+static void EOR_zero(void);
+static void EOR_zerox(void);
+static void HLT(void);
+static void INC_absolute(void);
+static void INC_absolutex(void);
 static void INC_help(uint16_t location);
 static void INC_zero(void);
 static void INC_zerox(void);
-static void INC_absolute(void);
-static void INC_absolutex(void);
+static void INS_absolute(void);
+static void INS_absolutex(void);
+static void INS_absolutey(void);
+static void INS_help(uint8_t *address);
+static void INS_indirectx(void);
+static void INS_indirecty(void);
+static void INS_zero(void);
+static void INS_zerox(void);
 static void INX(void);
 static void INY(void);
 static void JMP_absolute(void);
 static void JMP_indirect(void);
 static void JSR(void);
-static void LDA_help(uint16_t value);
-static void LDA_im(void);
-static void LDA_zero(void);
-static void LDA_zerox(void);
+static void LAS(void);
+static void LAX_absolute(void);
+static void LAX_absolutey(void);
+static void LAX_indirectx(void);
+static void LAX_indirecty(void);
+static void LAX_zero(void);
+static void LAX_zeroy(void);
 static void LDA_absolute(void);
 static void LDA_absolutex(void);
 static void LDA_absolutey(void);
+static void LDA_help(uint16_t value);
+static void LDA_im(void);
 static void LDA_indirectx(void);
 static void LDA_indirecty(void);
+static void LDA_zero(void);
+static void LDA_zerox(void);
+static void LDX_absolute(void);
+static void LDX_absolutey(void);
 static void LDX_help(uint8_t value);
 static void LDX_im(void);
 static void LDX_zero(void);
 static void LDX_zeroy(void);
-static void LDX_absolute(void);
-static void LDX_absolutey(void);
+static void LDY_absolute(void);
+static void LDY_absolutex(void);
 static void LDY_help(uint8_t value);
 static void LDY_im(void);
 static void LDY_zero(void);
 static void LDY_zerox(void);
-static void LDY_absolute(void);
-static void LDY_absolutex(void);
-static void LSR_help(uint8_t *value);
-static void LSR_accumulator(void);
-static void LSR_zero(void);
-static void LSR_zerox(void);
+static void LSE_absolute(void);
+static void LSE_absolutex(void);
+static void LSE_absolutey(void);
+static void LSE_indirectx(void);
+static void LSE_indirecty(void);
+static void LSE_zero(void);
+static void LSE_zerox(void);
 static void LSR_absolute(void);
 static void LSR_absolutex(void);
+static void LSR_accumulator(void);
+static void LSR_help(uint8_t *value);
+static void LSR_zero(void);
+static void LSR_zerox(void);
 static void NOP(void);
-static void ORA_help(uint16_t value);
-static void ORA_im(void);
-static void ORA_zero(void);
-static void ORA_zerox(void);
 static void ORA_absolute(void);
 static void ORA_absolutex(void);
 static void ORA_absolutey(void);
+static void ORA_help(uint16_t value);
+static void ORA_im(void);
 static void ORA_indirectx(void);
 static void ORA_indirecty(void);
+static void ORA_zero(void);
+static void ORA_zerox(void);
 static void PHA(void);
 static void PHP(void);
 static void PLA(void);
 static void PLP(void);
-static void ROL_help(uint8_t *location);
-static void ROL_accumulator(void);
-static void ROL_zero(void);
-static void ROL_zerox(void);
+static void RLA_absolute(void);
+static void RLA_absolutex(void);
+static void RLA_absolutey(void);
+static void RLA_indirectx(void);
+static void RLA_indirecty(void);
+static void RLA_zero(void);
+static void RLA_zerox(void);
 static void ROL_absolute(void);
 static void ROL_absolutex(void);
-static void ROR_help(uint8_t *location);
-static void ROR_accumulator(void);
-static void ROR_zero(void);
-static void ROR_zerox(void);
+static void ROL_accumulator(void);
+static void ROL_help(uint8_t *location);
+static void ROL_zero(void);
+static void ROL_zerox(void);
 static void ROR_absolute(void);
 static void ROR_absolutex(void);
+static void ROR_accumulator(void);
+static void ROR_help(uint8_t *location);
+static void ROR_zero(void);
+static void ROR_zerox(void);
+static void RRA_absolute(void);
+static void RRA_absolutex(void);
+static void RRA_absolutey(void);
+static void RRA_indirectx(void);
+static void RRA_indirecty(void);
+static void RRA_zero(void);
+static void RRA_zerox(void);
+static void RRA_zeroy(void);
 static void RTI(void);
 static void RTS(void);
-static void SBC_help(uint8_t amt);
-static void SBC_im(void);
-static void SBC_zero(void);
-static void SBC_zerox(void);
+static void SAY(void);
 static void SBC_absolute(void);
 static void SBC_absolutex(void);
 static void SBC_absolutey(void);
+static void SBC_help(uint8_t amt);
+static void SBC_im(void);
 static void SBC_indirectx(void);
 static void SBC_indirecty(void);
+static void SBC_zero(void);
+static void SBC_zerox(void);
 static void SEC(void);
 static void SED(void);
 static void SEI(void);
-static void STA_zero(void);
-static void STA_zerox(void);
+static void SKW(void);
 static void STA_absolute(void);
 static void STA_absolutex(void);
 static void STA_absolutey(void);
 static void STA_indirectx(void);
 static void STA_indirecty(void);
+static void STA_zero(void);
+static void STA_zerox(void);
+static void STX_absolute(void);
 static void STX_zero(void);
 static void STX_zeroy(void);
-static void STX_absolute(void);
+static void STY_absolute(void);
 static void STY_zero(void);
 static void STY_zerox(void);
-static void STY_absolute(void);
+static void TAS(void);
 static void TAX(void);
 static void TAY(void);
 static void TSX(void);
 static void TXA(void);
 static void TXS(void);
 static void TYA(void);
-static void ASO_absolute(void);
-static void ASO_absolutex(void);
-static void ASO_absolutey(void);
-static void ASO_zero(void);
-static void ASO_zerox(void);
-static void ASO_indirectx(void);
-static void ASO_indirecty(void);
-static void RLA_absolute(void);
-static void RLA_absolutex(void);
-static void RLA_absolutey(void);
-static void RLA_zero(void);
-static void RLA_zerox(void);
-static void RLA_indirectx(void);
-static void RLA_indirecty(void);
-static void LSE_absolute(void);
-static void LSE_absolutex(void);
-static void LSE_absolutey(void);
-static void LSE_zero(void);
-static void LSE_zerox(void);
-static void LSE_indirectx(void);
-static void LSE_indirecty(void);
-static void RRA_absolute(void);
-static void RRA_absolutex(void);
-static void RRA_absolutey(void);
-static void RRA_zero(void);
-static void RRA_zerox(void);
-static void RRA_zeroy(void);
-static void RRA_indirectx(void);
-static void RRA_indirecty(void);
-static void AXS_absolute(void);
-static void AXS_absolutey(void);
-static void AXS_zero(void);
-static void AXS_zeroy(void);
-static void AXS_indirectx(void);
-static void AXS_indirecty(void);
-static void LAX_absolute(void);
-static void LAX_absolutey(void);
-static void LAX_zero(void);
-static void LAX_zeroy(void);
-static void LAX_indirectx(void);
-static void LAX_indirecty(void);
-static void DCM_help(uint8_t *address);
-static void DCM_absolute(void);
-static void DCM_absolutex(void);
-static void DCM_absolutey(void);
-static void DCM_zero(void);
-static void DCM_zerox(void);
-static void DCM_indirectx(void);
-static void DCM_indirecty(void);
-static void INS_help(uint8_t *address);
-static void INS_absolute(void);
-static void INS_absolutex(void);
-static void INS_absolutey(void);
-static void INS_zero(void);
-static void INS_zerox(void);
-static void INS_indirectx(void);
-static void INS_indirecty(void);
-static void ALR(void);
-static void TAS(void);
-static void SAY(void);
-static void AXA_absolutey(void);
-static void AXA_indirecty(void);
 static void XAS(void);
-static void SKB(void);
-static void SKW(void);
-static void HLT(void);
+static void cmp_help(unsigned char value, unsigned char reg);
+
+static inline void carry_check(uint16_t value);
+static inline uint8_t *dereference_address(uint8_t address);
+static inline uint8_t get_flag(flags_t flag);
+static inline unsigned char get_from_stack(void);
+static inline uint8_t *indexed_indirect(uint8_t address);
+static inline uint8_t *indirect_indexed(uint8_t address);
+static inline void negative_check(uint8_t value);
+static inline void overflow_check(uint16_t value, uint16_t result);
+static inline unsigned char peek_from_stack(void);
+static inline void push_to_stack(unsigned char value);
+static inline uint8_t read_byte();
+static inline uint8_t read_byte_at(uint16_t location);
+static inline uint16_t read_word();
+static inline uint16_t read_word_at(uint16_t location);
+static inline void set_flag(flags_t flag, bool b);
+static inline void write_byte(uint8_t value, uint16_t location);
+static inline void zero_check(uint8_t value);
 
 /* this will probably be rewritten once the cpu is done and correct file
  * handling is made*/
@@ -317,8 +336,8 @@ extern void interpret_opcode(void) {
       [0x69] = &ADC_im,
       [0x65] = &ADC_zero,
       [0x75] = &ADC_zerox,
-      [0x6D] = &ADC_absolute,
-      [0x7D] = &ADC_absolutex,
+      [0x6d] = &ADC_absolute,
+      [0x7d] = &ADC_absolutex,
       [0x79] = &ADC_absolutey,
       [0x61] = &ADC_indirectx,
       [0x71] = &ADC_indirecty,
@@ -326,111 +345,110 @@ extern void interpret_opcode(void) {
       [0x29] = &AND_im,
       [0x25] = &AND_zero,
       [0x35] = &AND_zerox,
-      [0x2D] = &AND_absolute,
-      [0x3D] = &AND_absolutex,
+      [0x2d] = &AND_absolute,
+      [0x3d] = &AND_absolutex,
       [0x39] = &AND_absolutey,
       [0x21] = &AND_indirectx,
       [0x31] = &AND_indirecty,
 
-      [0x0A] = &ASL_accumulator,
+      [0x0a] = &ASL_accumulator,
       [0x06] = &ASL_zero,
       [0x16] = &ASL_zerox,
-      [0x0E] = &ASL_absolute,
-      [0x1E] = &ASL_absolutex,
+      [0x0e] = &ASL_absolute,
+      [0x1e] = &ASL_absolutex,
 
       [0x90] = &BCC,
-      [0xB0] = &BCS,
-      [0xF0] = &BEQ,
+      [0xb0] = &BCS,
+      [0xf0] = &BEQ,
 
       [0x24] = &BIT_zero,
-      [0x2C] = &BIT_absolute,
+      [0x2c] = &BIT_absolute,
 
       [0x30] = &BMI,
-      [0xD0] = &BNE,
+      [0xd0] = &BNE,
       [0x10] = &BPL,
       [0x00] = &BRK,
       [0x50] = &BVC,
       [0x70] = &BVS,
 
       [0x18] = &CLC,
-      [0xD8] = &CLD,
+      [0xd8] = &CLD,
       [0x58] = &CLI,
-      [0xB8] = &CLV,
+      [0xb8] = &CLV,
 
-      [0xC9] = &CMP_im,
-      [0xC5] = &CMP_zero,
-      [0xD5] = &CMP_zerox,
-      [0xCD] = &CMP_absolute,
-      [0xDD] = &CMP_absolutex,
-      [0xD9] = &CMP_absolutey,
-      [0xC1] = &CMP_indirectx,
-      [0xD1] = &CMP_indirecty,
+      [0xc9] = &CMP_im,
+      [0xc5] = &CMP_zero,
+      [0xd5] = &CMP_zerox,
+      [0xcd] = &CMP_absolute,
+      [0xdd] = &CMP_absolutex,
+      [0xd9] = &CMP_absolutey,
+      [0xc1] = &CMP_indirectx,
+      [0xd1] = &CMP_indirecty,
 
-      [0xE0] = &CPX_im,
-      [0xE4] = &CPX_zero,
-      [0xEC] = &CPX_absolute,
-      [0xC0] = &CPY_im,
-      [0xC4] = &CPY_zero,
-      [0xCC] = &CPY_absolute,
+      [0xe0] = &CPX_im,
+      [0xe4] = &CPX_zero,
+      [0xec] = &CPX_absolute,
+      [0xc0] = &CPY_im,
+      [0xc4] = &CPY_zero,
+      [0xcc] = &CPY_absolute,
 
-      [0xC6] = &DEC_zero,
-      [0xD6] = &DEC_zerox,
-      [0xCE] = &DEC_absolute,
-      [0xDE] = &DEC_absolutex,
-      [0xCA] = &DEX,
+      [0xc6] = &DEC_zero,
+      [0xd6] = &DEC_zerox,
+      [0xce] = &DEC_absolute,
+      [0xde] = &DEC_absolutex,
+      [0xca] = &DEX,
       [0x88] = &DEY,
 
       [0x49] = &EOR_im,
       [0x45] = &EOR_zero,
       [0x55] = &EOR_zerox,
-      [0x4D] = &EOR_absolute,
-      [0x5D] = &EOR_absolutex,
+      [0x4d] = &EOR_absolute,
+      [0x5d] = &EOR_absolutex,
       [0x59] = &EOR_absolutey,
       [0x41] = &EOR_indirectx,
       [0x51] = &EOR_indirecty,
 
-      [0xE6] = &INC_zero,
-      [0xF6] = &INC_zerox,
-      [0xEE] = &INC_absolute,
-      [0xFE] = &INC_absolutex,
-      [0xE8] = &INX,
-      [0xC8] = &INY,
-      [0x4C] = &JMP_absolute,
-      [0x6C] = &JMP_indirect,
+      [0xe6] = &INC_zero,
+      [0xf6] = &INC_zerox,
+      [0xee] = &INC_absolute,
+      [0xfe] = &INC_absolutex,
+      [0xe8] = &INX,
+      [0xc8] = &INY,
+      [0x4c] = &JMP_absolute,
+      [0x6c] = &JMP_indirect,
       [0x20] = &JSR,
 
-      [0xA9] = &LDA_im,
-      [0xA5] = &LDA_zero,
-      [0xB5] = &LDA_zerox,
-      [0xAD] = &LDA_absolute,
-      [0xBD] = &LDA_absolutex,
-      [0xB9] = &LDA_absolutey,
-      [0xA1] = &LDA_indirectx,
-      [0xB1] = &LDA_indirecty,
+      [0xa9] = &LDA_im,
+      [0xa5] = &LDA_zero,
+      [0xb5] = &LDA_zerox,
+      [0xad] = &LDA_absolute,
+      [0xbd] = &LDA_absolutex,
+      [0xb9] = &LDA_absolutey,
+      [0xa1] = &LDA_indirectx,
+      [0xb1] = &LDA_indirecty,
 
-      [0xA2] = &LDX_im,
-      [0xA6] = &LDX_zero,
-      [0xB6] = &LDX_zeroy,
-      [0xAE] = &LDX_absolute,
-      [0xBE] = &LDX_absolutey,
-      [0xA0] = &LDY_im,
-      [0xA4] = &LDY_zero,
-      [0xB4] = &LDY_zerox,
-      [0xAC] = &LDY_absolute,
-      [0xBC] = &LDY_absolutex,
+      [0xa2] = &LDX_im,
+      [0xa6] = &LDX_zero,
+      [0xb6] = &LDX_zeroy,
+      [0xae] = &LDX_absolute,
+      [0xbe] = &LDX_absolutey,
+      [0xa0] = &LDY_im,
+      [0xa4] = &LDY_zero,
+      [0xb4] = &LDY_zerox,
+      [0xac] = &LDY_absolute,
+      [0xbc] = &LDY_absolutex,
 
-      [0x4A] = &LSR_accumulator,
+      [0x4a] = &LSR_accumulator,
       [0x46] = &LSR_zero,
       [0x56] = &LSR_zerox,
-      [0x4E] = &LSR_absolute,
-      [0x5E] = &LSR_absolutex,
-
+      [0x4e] = &LSR_absolute,
+      [0x5e] = &LSR_absolutex,
 
       [0x05] = &ORA_im,
       [0x09] = &ORA_zero,
       [0x15] = &ORA_zerox,
-      [0x0D] = &ORA_absolute,
-      [0x1D] = &ORA_absolutex,
+      [0x0d] = &ORA_absolute,
+      [0x1d] = &ORA_absolutex,
       [0x19] = &ORA_absolutey,
       [0x01] = &ORA_indirectx,
       [0x11] = &ORA_indirecty,
@@ -440,7 +458,7 @@ extern void interpret_opcode(void) {
       [0x68] = &PLA,
       [0x28] = &PLP,
 
-      [0x2A] = &ROL_accumulator,
+      [0x2a] = &ROL_accumulator,
       [0x26] = &ROL_zero,
       [0x36] = &ROL_zerox,
       [0x2e] = &ROL_absolute,
@@ -454,17 +472,17 @@ extern void interpret_opcode(void) {
 
       [0x40] = &RTI,
       [0x60] = &RTS,
-      [0xE9] = &SBC_im,
-      [0xE5] = &SBC_zero,
-      [0xF5] = &SBC_zerox,
-      [0xED] = &SBC_absolute,
-      [0xFD] = &SBC_absolutex,
-      [0xF9] = &SBC_absolutey,
-      [0xE1] = &SBC_indirectx,
-      [0xF1] = &SBC_indirecty,
+      [0xe9] = &SBC_im,
+      [0xe5] = &SBC_zero,
+      [0xf5] = &SBC_zerox,
+      [0xed] = &SBC_absolute,
+      [0xfd] = &SBC_absolutex,
+      [0xf9] = &SBC_absolutey,
+      [0xe1] = &SBC_indirectx,
+      [0xf1] = &SBC_indirecty,
 
       [0x38] = &SEC,
-      [0xF8] = &SED,
+      [0xf8] = &SED,
       [0x78] = &SEI,
 
       [0x85] = &STA_zero,
@@ -488,67 +506,67 @@ extern void interpret_opcode(void) {
       [0x9a] = &TXS,
       [0x98] = &TYA,
 
-      [0x0F] = &ASO_absolute,
-      [0x1F] = &ASO_absolutex,
-      [0x1B] = &ASO_absolutey,
+      [0x0f] = &ASO_absolute,
+      [0x1f] = &ASO_absolutex,
+      [0x1b] = &ASO_absolutey,
       [0x07] = &ASO_zero,
       [0x17] = &ASO_zerox,
       [0x03] = &ASO_indirectx,
       [0x13] = &ASO_indirecty,
-      [0x2F] = &RLA_absolute,
-      [0x3F] = &RLA_absolutex,
-      [0x3B] = &RLA_absolutey,
+      [0x2f] = &RLA_absolute,
+      [0x3f] = &RLA_absolutex,
+      [0x3b] = &RLA_absolutey,
       [0x27] = &RLA_zero,
       [0x37] = &RLA_zerox,
       [0x23] = &RLA_indirectx,
       [0x33] = &RLA_indirecty,
-      [0x4F] = &LSE_absolute,
-      [0x5F] = &LSE_absolutex,
-      [0x5B] = &LSE_absolutey,
+      [0x4f] = &LSE_absolute,
+      [0x5f] = &LSE_absolutex,
+      [0x5b] = &LSE_absolutey,
       [0x47] = &LSE_zero,
       [0x57] = &LSE_zerox,
       [0x43] = &LSE_indirectx,
       [0x53] = &LSE_indirecty,
-      [0x6F] = &RRA_absolute,
-      [0x7F] = &RRA_absolutex,
-      [0x7B] = &RRA_absolutey,
+      [0x6f] = &RRA_absolute,
+      [0x7f] = &RRA_absolutex,
+      [0x7b] = &RRA_absolutey,
       [0x67] = &RRA_zero,
       [0x77] = &RRA_zerox,
       [0x63] = &RRA_indirectx,
       [0x73] = &RRA_indirecty,
-      [0x8F] = &AXS_absolute,
+      [0x8f] = &AXS_absolute,
       [0x87] = &AXS_zero,
       [0x97] = &AXS_zeroy,
       [0x83] = &AXS_indirectx,
-      [0xAF] = &LAX_absolute,
-      [0xA7] = &LAX_zero,
-      [0xB7] = &LAX_zeroy,
-      [0xA3] = &LAX_indirectx,
-      [0xCF] = &DCM_absolute,
-      [0xDF] = &DCM_absolutex,
-      [0xDB] = &DCM_absolutey,
-      [0xC7] = &DCM_zero,
-      [0xD7] = &DCM_zerox,
-      [0xC3] = &DCM_indirectx,
-      [0xD3] = &DCM_indirecty,
-      [0xEF] = &INS_absolute,
-      [0xFF] = &INS_absolutex,
-      [0xFB] = &INS_absolutey,
-      [0xE7] = &INS_zero,
-      [0xF7] = &INS_zerox,
-      [0xE3] = &INS_indirectx,
-      [0xF3] = &INS_indirecty,
-      [0x9B] = &TAS,
-      [0x9C] = &SAY,
-      [0x9E] = &XAS,
-      [0x9F] = &AXA_absolutey,
+      [0xaf] = &LAX_absolute,
+      [0xa7] = &LAX_zero,
+      [0xb7] = &LAX_zeroy,
+      [0xa3] = &LAX_indirectx,
+      [0xcf] = &DCM_absolute,
+      [0xdf] = &DCM_absolutex,
+      [0xdb] = &DCM_absolutey,
+      [0xc7] = &DCM_zero,
+      [0xd7] = &DCM_zerox,
+      [0xc3] = &DCM_indirectx,
+      [0xd3] = &DCM_indirecty,
+      [0xef] = &INS_absolute,
+      [0xff] = &INS_absolutex,
+      [0xfb] = &INS_absolutey,
+      [0xe7] = &INS_zero,
+      [0xf7] = &INS_zerox,
+      [0xe3] = &INS_indirectx,
+      [0xf3] = &INS_indirecty,
+      [0x9b] = &TAS,
+      [0x9c] = &SAY,
+      [0x9e] = &XAS,
+      [0x9f] = &AXA_absolutey,
       [0x93] = &AXA_indirecty,
 
-      [0xEA] = &NOP,
+      [0xea] = &NOP,
       [0x80] = &NOP,
       [0x82] = &NOP,
-      [0xC2] = &NOP,
-      [0xE2] = &NOP,
+      [0xc2] = &NOP,
+      [0xe2] = &NOP,
       [0x04] = &NOP,
       [0x14] = &NOP,
       [0x34] = &NOP,
@@ -556,18 +574,17 @@ extern void interpret_opcode(void) {
       [0x54] = &NOP,
       [0x64] = &NOP,
       [0x74] = &NOP,
-      [0xD4] = &NOP,
-      [0xF4] = &NOP,
+      [0xd4] = &NOP,
+      [0xf4] = &NOP,
 
-
-      [0x0C] = &SKW,
-      [0x1C] = &SKW,
-      [0x3C] = &SKW,
-      [0x5C] = &SKW,
-      [0x7C] = &SKW,
+      [0x0c] = &SKW,
+      [0x1c] = &SKW,
+      [0x3c] = &SKW,
+      [0x5c] = &SKW,
+      [0x7c] = &SKW,
       [0x89] = &SKW,
-      [0xDC] = &SKW,
-      [0xFC] = &SKW,
+      [0xdc] = &SKW,
+      [0xfc] = &SKW,
 
       [0x02] = &HLT,
       [0x12] = &HLT,
@@ -578,9 +595,12 @@ extern void interpret_opcode(void) {
       [0x62] = &HLT,
       [0x72] = &HLT,
       [0x92] = &HLT,
-      [0xB2] = &HLT,
-      [0xD2] = &HLT,
-      [0xF2] = &HLT};
+      [0xb2] = &HLT,
+      [0xd2] = &HLT,
+      [0xf2] = &HLT,
+      [0x2b] = &ANC,
+      [0x0b] = &ANC,
+      [0xbb] = &LAS};
 
   unsigned char opcode = read_byte();
 
