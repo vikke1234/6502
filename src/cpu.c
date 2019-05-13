@@ -1918,7 +1918,7 @@ static void TAS(void) {
   uint8_t tmp = registers->accumulator & registers->x;
 
   push_to_stack(registers->x);
-  tmp &=  ((location >> 8) + 1);
+  tmp &= ((location >> 8) + 1);
 
   memory[location + registers->y] = tmp;
 }
