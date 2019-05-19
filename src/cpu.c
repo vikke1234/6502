@@ -292,7 +292,7 @@ static void XAS(void);
 static void cmp_help(unsigned char value, unsigned char reg);
 
 static inline void carry_check(uint16_t value);
-static inline uint8_t *dereference_address(uint8_t address);
+static inline uint8_t *dereference_address(uint16_t address);
 static inline uint8_t get_flag(flags_t flag);
 static inline unsigned char get_from_stack(void);
 static inline uint8_t *indexed_indirect(uint8_t address);
@@ -331,7 +331,8 @@ extern void initialize_cpu(const unsigned char *data, size_t size,
 
 /* parser, pass data to initialize cpu and this does the rest */
 extern void interpret_opcode(void) {
-  /* figure out how to reduce the amount of shit in this? */
+  /* there's a lot of boilerplate code, MAYBE it can be reduced with some macro
+   * hax but probably not, plus it would be quite cryptic then (they do follow a pattern) */
   static const instruction_pointer instructions[256] = {
       [0x69] = &ADC_im,
       [0x65] = &ADC_zero,
@@ -414,6 +415,7 @@ extern void interpret_opcode(void) {
       [0xfe] = &INC_absolutex,
       [0xe8] = &INX,
       [0xc8] = &INY,
+
       [0x4c] = &JMP_absolute,
       [0x6c] = &JMP_indirect,
       [0x20] = &JSR,
@@ -472,6 +474,7 @@ extern void interpret_opcode(void) {
 
       [0x40] = &RTI,
       [0x60] = &RTS,
+
       [0xe9] = &SBC_im,
       [0xe5] = &SBC_zero,
       [0xf5] = &SBC_zerox,
@@ -513,6 +516,7 @@ extern void interpret_opcode(void) {
       [0x17] = &ASO_zerox,
       [0x03] = &ASO_indirectx,
       [0x13] = &ASO_indirecty,
+
       [0x2f] = &RLA_absolute,
       [0x3f] = &RLA_absolutex,
       [0x3b] = &RLA_absolutey,
@@ -520,6 +524,7 @@ extern void interpret_opcode(void) {
       [0x37] = &RLA_zerox,
       [0x23] = &RLA_indirectx,
       [0x33] = &RLA_indirecty,
+
       [0x4f] = &LSE_absolute,
       [0x5f] = &LSE_absolutex,
       [0x5b] = &LSE_absolutey,
@@ -527,6 +532,7 @@ extern void interpret_opcode(void) {
       [0x57] = &LSE_zerox,
       [0x43] = &LSE_indirectx,
       [0x53] = &LSE_indirecty,
+
       [0x6f] = &RRA_absolute,
       [0x7f] = &RRA_absolutex,
       [0x7b] = &RRA_absolutey,
@@ -534,14 +540,17 @@ extern void interpret_opcode(void) {
       [0x77] = &RRA_zerox,
       [0x63] = &RRA_indirectx,
       [0x73] = &RRA_indirecty,
+
       [0x8f] = &AXS_absolute,
       [0x87] = &AXS_zero,
       [0x97] = &AXS_zeroy,
       [0x83] = &AXS_indirectx,
+
       [0xaf] = &LAX_absolute,
       [0xa7] = &LAX_zero,
       [0xb7] = &LAX_zeroy,
       [0xa3] = &LAX_indirectx,
+
       [0xcf] = &DCM_absolute,
       [0xdf] = &DCM_absolutex,
       [0xdb] = &DCM_absolutey,
@@ -549,6 +558,7 @@ extern void interpret_opcode(void) {
       [0xd7] = &DCM_zerox,
       [0xc3] = &DCM_indirectx,
       [0xd3] = &DCM_indirecty,
+
       [0xef] = &INS_absolute,
       [0xff] = &INS_absolutex,
       [0xfb] = &INS_absolutey,
@@ -556,6 +566,7 @@ extern void interpret_opcode(void) {
       [0xf7] = &INS_zerox,
       [0xe3] = &INS_indirectx,
       [0xf3] = &INS_indirecty,
+
       [0x9b] = &TAS,
       [0x9c] = &SAY,
       [0x9e] = &XAS,
@@ -636,8 +647,8 @@ static inline uint8_t *indirect_indexed(uint8_t address) {
   return &memory[location + registers->y];
 }
 
-static inline uint8_t *dereference_address(uint8_t address) {
-  return &memory[address];
+static inline __attribute__((__always_inline__)) uint8_t *dereference_address(uint16_t address) {
+  return &memory[address]; /* always in range due to address being an 2 bytes long */
 }
 
 static inline void set_flag(flags_t flag, bool b) {
@@ -649,7 +660,7 @@ static inline void set_flag(flags_t flag, bool b) {
 static inline uint8_t get_flag(flags_t flag) {
   /* !! to turn it into a 1 or 0 to not require shifting and
    * looking up the power of two it is, also this is faster than doing
-   * status &= ~flag */
+   * status &= ~flag (have to check again TODO)*/
   return !!(registers->status & flag);
 }
 
@@ -668,6 +679,7 @@ static inline uint8_t read_byte_at(uint16_t location) {
   uint8_t value = memory[location];
   return value;
 }
+
 static inline uint8_t read_byte() {
   uint8_t value = memory[registers->pc++];
   return value;
@@ -1868,7 +1880,7 @@ static void DCM_indirecty(void) {
 }
 
 static void INS_help(uint8_t *address) {
-  *address++;
+  (*address)++;
   SBC_help(*address);
 }
 

@@ -35,7 +35,7 @@ typedef enum {
 } flags_t;
 
 
-/* this will probably just be written to as a uint8_t * instead of separately */
+/* of type unsigned char instead of uint8_t because uint8_t doesn't allow aliasing */
 typedef struct {
   unsigned char RAM              [0x1fff]; /* RAM size 0x800, mirrored 3 times */
   unsigned char ppu_registers    [0x2000]; /* actual size 0x8, repeats every 8 bytes */
@@ -46,12 +46,18 @@ typedef struct {
 
 typedef struct {
   uint16_t pc;
-  uint8_t accumulator;
   uint8_t stack_pointer[256];
-  uint8_t _sp;
-  uint8_t x, y;
+  uint8_t _sp; /* index where to place things in the stack */
+  uint8_t x, y, accumulator; /* x, y and accumulator registers */
   uint8_t status;          /** NVsB DIZC, @see FLAGS */
 } processor_registers;
+
+/* maybe use this for nice bundling dunno? would reduce globals which is nice (clock_ticks)*/
+typedef struct {
+  processor_registers registers;
+  memory_map memory;
+  unsigned long long clock_ticks;
+} processor_t;
 
 extern void interpret_opcode(void);
 extern void initialize_cpu(const unsigned char *data, size_t size, memory_map *m, processor_registers *reg);
