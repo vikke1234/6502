@@ -10,48 +10,15 @@
 
 typedef void (*instruction_pointer)(void);
 
-/**
- * @brief sets the flag to the value of b
- * @param flag
- * @param b what the flag should be
- */
-static inline void set_flag(flags_t flag, bool b);
-
-/**
- * @brief takes an array of flags and checks for whether they should be set or
- * not
- * @param flags array of flags to be checked
- * @param n amount of flags
- */
-static void set_flags(flags_t *flags, int n);
-
-/**
- * @brief gets a given flag, 1 or 0
- * @param flag
- */
-static inline uint8_t get_flag(flags_t flag);
-
-/**
- * @brief reads 2 little endian bytes and combines them into
- a 16bit unsigned
- * assumes that thereemacs's atleast 2 bytes to read, note increment PC by 2
- */
-static inline uint16_t read_word();
-
-/**
- * @brief reads 1 byte (little endian), note increment PC
- */
-static inline uint8_t read_byte();
-static inline uint8_t read_byte_at(uint16_t location);
-static inline uint16_t read_word_at(uint16_t location);
-
 static processor_registers _registers;
 static processor_registers *registers = &_registers;
 /* for "easier" access to the different parts of memory for e.g. debugging
  * purpuses */
 static memory_map _memory;
 static unsigned char *memory = (unsigned char *)&_memory;
+unsigned long long clock_ticks = 0; /* might get replaced by something */
 
+/* like 150 lines of prototypes, have fun :) */
 static void ADC_absolute(void);
 static void ADC_absolutex(void);
 static void ADC_absolutey(void);
@@ -61,7 +28,6 @@ static void ADC_indirectx(void);
 static void ADC_indirecty(void);
 static void ADC_zero(void);
 static void ADC_zerox(void);
-static void ADC_zeroy(void);
 static void ALR(void);
 static void ANC(void);
 static void AND_absolute(void);
@@ -89,9 +55,7 @@ static void ASO_zerox(void);
 static void AXA_absolutey(void);
 static void AXA_indirecty(void);
 static void AXS_absolute(void);
-static void AXS_absolutey(void);
 static void AXS_indirectx(void);
-static void AXS_indirecty(void);
 static void AXS_zero(void);
 static void AXS_zeroy(void);
 static void BCC(void);
@@ -251,7 +215,6 @@ static void RRA_indirectx(void);
 static void RRA_indirecty(void);
 static void RRA_zero(void);
 static void RRA_zerox(void);
-static void RRA_zeroy(void);
 static void RTI(void);
 static void RTS(void);
 static void SAY(void);
@@ -291,23 +254,66 @@ static void TYA(void);
 static void XAS(void);
 static void cmp_help(unsigned char value, unsigned char reg);
 
+/* theese just check for what the name says and sets the status based on that */
+static inline void zero_check(uint8_t value);
 static inline void carry_check(uint16_t value);
-static inline uint8_t *dereference_address(uint16_t address);
-static inline uint8_t get_flag(flags_t flag);
-static inline unsigned char get_from_stack(void);
-static inline uint8_t *indexed_indirect(uint8_t address);
-static inline uint8_t *indirect_indexed(uint8_t address);
 static inline void negative_check(uint8_t value);
 static inline void overflow_check(uint16_t value, uint16_t result);
+
+/**
+ * @brief does a simple check if the page has been crossed
+ *
+ * @param address    The address to read from
+ * @param reg        The register (x, y) to increment addr with
+ * @return 1 if page crossed else 0
+ */
+static inline bool page_check(uint16_t address, uint8_t reg);
+
+static inline uint8_t *dereference_address(uint16_t address);
+static inline uint8_t *indexed_indirect(uint8_t address);
+/* might get turnt into a macro so the function can access the address */
+static inline uint8_t *indirect_indexed(uint8_t address);
+
+static inline unsigned char pop_from_stack(void);
 static inline unsigned char peek_from_stack(void);
 static inline void push_to_stack(unsigned char value);
-static inline uint8_t read_byte();
-static inline uint8_t read_byte_at(uint16_t location);
-static inline uint16_t read_word();
-static inline uint16_t read_word_at(uint16_t location);
-static inline void set_flag(flags_t flag, bool b);
+
 static inline void write_byte(uint8_t value, uint16_t location);
-static inline void zero_check(uint8_t value);
+
+/**
+ * @brief sets the flag to the value of b
+ * @param flag
+ * @param b what the flag should be
+ */
+static inline void set_flag(flags_t flag, bool b);
+
+/**
+ * @brief gets a given flag, 1 or 0
+ * @param flag
+ */
+static inline uint8_t get_flag(flags_t flag);
+
+/**
+ * @brief reads 2 little endian bytes and combines them into
+ a 16bit unsigned
+ * assumes that thereemacs's atleast 2 bytes to read, note increment PC by 2
+ */
+static inline uint16_t read_word();
+
+/**
+ * @brief reads 1 byte (little endian), note increment PC
+ */
+static inline uint8_t read_byte();
+
+/**
+ * @brief same as @see{read_byte} but for a specific location
+ */
+static inline uint8_t read_byte_at(uint16_t location);
+
+/**
+ * @brief same as @see{read_word} but for a specific location
+ */
+static inline uint16_t read_word_at(uint16_t location);
 
 /* this will probably be rewritten once the cpu is done and correct file
  * handling is made*/
@@ -325,14 +331,14 @@ extern void initialize_cpu(const unsigned char *data, size_t size,
   registers->status = 0;
   registers->x = 0;
   registers->y = 0;
-  unsigned long long clock_ticks = 0;
   memcpy(&memory[registers->pc], &data[0x600], size - 0x600);
 }
 
 /* parser, pass data to initialize cpu and this does the rest */
 extern void interpret_opcode(void) {
   /* there's a lot of boilerplate code, MAYBE it can be reduced with some macro
-   * hax but probably not, plus it would be quite cryptic then (they do follow a pattern) */
+   * hax but probably not, plus it would be quite cryptic then (they do follow a
+   * pattern) */
   static const instruction_pointer instructions[256] = {
       [0x69] = &ADC_im,
       [0x65] = &ADC_zero,
@@ -627,12 +633,12 @@ static inline void push_to_stack(unsigned char value) {
   registers->stack_pointer[registers->_sp++] = value;
 }
 
-static inline unsigned char get_from_stack(void) {
+static inline unsigned char pop_from_stack(void) {
   return registers->stack_pointer[--registers->_sp];
 }
 
 static inline unsigned char peek_from_stack(void) {
-  return registers->stack_pointer[registers->_sp];
+  return registers->stack_pointer[registers->_sp - 1];
 }
 
 static inline uint8_t *indexed_indirect(uint8_t address) {
@@ -644,11 +650,16 @@ static inline uint8_t *indexed_indirect(uint8_t address) {
 static inline uint8_t *indirect_indexed(uint8_t address) {
   uint16_t _location = read_word_at(address);
   uint16_t location = read_byte_at(_location);
+  clock_ticks +=
+      5 +
+      page_check(location, registers->y); /* TODO figure out if this is wrong */
   return &memory[location + registers->y];
 }
 
-static inline __attribute__((__always_inline__)) uint8_t *dereference_address(uint16_t address) {
-  return &memory[address]; /* always in range due to address being an 2 bytes long */
+static inline __attribute__((__always_inline__)) uint8_t *
+dereference_address(uint16_t address) {
+  return &memory[address]; /* always in range due to address being an 2 bytes
+                              long */
 }
 
 static inline void set_flag(flags_t flag, bool b) {
@@ -712,6 +723,12 @@ static inline void overflow_check(uint16_t value, uint16_t result) {
   }
 }
 
+static inline bool page_check(uint16_t address, uint8_t reg) {
+  if (((address + reg) & 0xff00) != (address & 0xff00)) {
+    return 1;
+  }
+  return 0;
+}
 static inline void carry_check(uint16_t value) {
   if (value & 0xff00) {
     set_flag(CARRY, true);
@@ -731,52 +748,51 @@ static void ADC_help(uint16_t value) {
 
 static void ADC_im(void) {
   uint8_t value = read_byte();
+  clock_ticks += 2;
   ADC_help(value);
 }
 
 static void ADC_zero(void) {
   uint8_t location = read_byte();
+  clock_ticks += 3;
   ADC_help(memory[location]);
 }
 
 static void ADC_zerox(void) {
   uint8_t location = read_byte();
+  clock_ticks += 4;
   ADC_help(memory[location + registers->x]);
-}
-
-static void ADC_zeroy(void) {
-  uint8_t location = read_byte();
-  ADC_help(memory[location + registers->y]);
 }
 
 static void ADC_absolute(void) {
   uint16_t location = read_word();
+  clock_ticks += 4;
   ADC_help(memory[location]);
 }
 
 static void ADC_absolutex(void) {
   uint16_t location = read_word();
+  clock_ticks += 3 + page_check(location, registers->x);
   ADC_help(memory[location + registers->x]);
 }
 
 static void ADC_absolutey(void) {
   uint16_t location = read_word();
+  clock_ticks += 3 + page_check(location, registers->y);
   ADC_help(memory[location + registers->y]);
 }
 
 static void ADC_indirectx(void) {
   uint8_t location = read_byte();
   uint16_t value = read_word_at(location + registers->x);
-  printf("%d\n", value);
+  clock_ticks += 6;
   ADC_help(value);
 }
 
 static void ADC_indirecty(void) {
-  uint8_t _location = read_byte();
-  uint8_t location = read_word_at(_location + registers->y);
-  uint16_t value = read_word_at(location);
-
-  ADC_help(value);
+  uint8_t address = read_byte();
+  uint8_t *value = indirect_indexed(address);
+  ADC_help(*value);
 }
 
 static void AND_help(uint8_t value) {
@@ -784,29 +800,50 @@ static void AND_help(uint8_t value) {
   zero_check(registers->accumulator);
   negative_check(registers->accumulator);
 }
-static void AND_im(void) { AND_help(read_byte()); }
+static void AND_im(void) {
+  clock_ticks += 2;
+  AND_help(read_byte());
+}
 
-static void AND_zero(void) { AND_help(memory[read_byte()]); }
+static void AND_zero(void) {
+  clock_ticks += 3;
+  AND_help(memory[read_byte()]);
+}
 
-static void AND_zerox(void) { AND_help(memory[read_byte() + registers->x]); }
+static void AND_zerox(void) {
+  clock_ticks += 4;
+  AND_help(memory[read_byte() + registers->x]);
+}
 
-static void AND_absolute(void) { AND_help(memory[read_word()]); }
+static void AND_absolute(void) {
+  clock_ticks += 4;
+  AND_help(memory[read_word()]);
+}
 
-static void AND_absolutex(void) { AND_help(memory[read_word() + registers->x]); }
+static void AND_absolutex(void) {
+  uint16_t address = read_word();
+  clock_ticks += 4 + page_check(address, registers->x);
 
-static void AND_absolutey(void) { AND_help(memory[read_word() + registers->y]); }
+  AND_help(memory[address + registers->x]);
+}
+
+static void AND_absolutey(void) {
+  uint16_t address = read_word();
+  clock_ticks += 4 + page_check(address, registers->x);
+  AND_help(memory[address + registers->y]);
+}
 
 static void AND_indirectx(void) {
-  uint8_t _location = read_byte();
-  uint16_t location = read_word_at(_location + registers->x);
-  uint8_t value = read_byte_at(location);
-  AND_help(value);
+  uint8_t address = read_byte();
+  uint8_t *value = indirect_indexed(address);
+  clock_ticks += 6;
+  AND_help(*value);
 }
 
 static void AND_indirecty(void) {
-  uint8_t _location = read_byte();
-  uint16_t location = read_word_at(_location);
-  uint8_t value = read_byte_at(location + registers->y);
+  uint8_t address = read_byte();
+  uint8_t *value = indirect_indexed(address);
+  AND_help(*value);
 }
 
 void ASL_help(uint8_t *address) {
@@ -816,36 +853,44 @@ void ASL_help(uint8_t *address) {
   negative_check(*address);
 }
 
-static void ASL_accumulator(void) { ASL_help(&registers->accumulator); }
+static void ASL_accumulator(void) {
+  clock_ticks += 2;
+  ASL_help(&registers->accumulator);
+}
 
-static void ASL_zero(void) { ASL_help(&memory[read_byte()]); }
+static void ASL_zero(void) {
+  clock_ticks += 5;
+  ASL_help(&memory[read_byte()]);
+}
 
-static void ASL_zerox(void) { ASL_help(&memory[read_byte() + registers->x]); }
+static void ASL_zerox(void) {
+  clock_ticks += 6;
+  ASL_help(&memory[read_byte() + registers->x]);
+}
 
-static void ASL_absolute(void) { ASL_help(&memory[read_word()]); }
+static void ASL_absolute(void) {
+  clock_ticks += 6;
+  ASL_help(&memory[read_word()]);
+}
 
-static void ASL_absolutex(void) { ASL_help(&memory[read_word() + registers->x]); }
+static void ASL_absolutex(void) {
+  clock_ticks += 7;
+  ASL_help(&memory[read_word() + registers->x]);
+}
 
-static void BCC(void) {
+static void branch(flags_t flag, bool b) {
   int8_t offset = read_byte();
-  if (!get_flag(CARRY)) {
+  clock_ticks += 2;
+  if (get_flag(flag) == b) {
+    clock_ticks += 1 + page_check(registers->pc, offset);
     registers->pc += offset;
   }
 }
+static void BCC(void) { branch(CARRY, false); }
 
-static void BCS(void) {
-  int8_t offset = read_byte();
-  if (get_flag(CARRY)) {
-    registers->pc += offset;
-  }
-}
+static void BCS(void) { branch(CARRY, true); }
 
-static void BEQ(void) {
-  int8_t offset = read_byte();
-  if (get_flag(ZERO)) {
-    registers->pc += offset;
-  }
-}
+static void BEQ(void) { branch(ZERO, true); }
 
 void BIT_help(uint16_t bit_test) {
   if (bit_test == 0) {
@@ -861,63 +906,55 @@ void BIT_help(uint16_t bit_test) {
 static void BIT_zero(void) {
   uint8_t location = read_byte();
   uint8_t bit_test = registers->accumulator & memory[location];
+  clock_ticks += 3;
   BIT_help(bit_test);
 }
 
 static void BIT_absolute(void) {
   uint16_t location = read_word();
   uint8_t bit_test = registers->accumulator & memory[location];
+  clock_ticks += 4;
   BIT_help(bit_test);
 }
 
-static void BMI(void) {
-  int8_t offset = read_byte();
-  if (get_flag(NEGATIVE)) {
-    registers->pc += offset;
-  }
-}
+static void BMI(void) { branch(NEGATIVE, true); }
 
-static void BNE(void) {
-  int8_t offset = read_byte();
-  if (!get_flag(ZERO)) {
-    registers->pc += offset;
-  }
-}
+static void BNE(void) { branch(ZERO, false); }
 
-static void BPL(void) {
-  int8_t offset = read_byte();
-  if (!get_flag(NEGATIVE)) {
-    registers->pc += offset;
-  }
-}
+static void BPL(void) { branch(NEGATIVE, false); }
 
+/* TODO */
 static void BRK(void) {
   push_to_stack(registers->pc);
   push_to_stack(registers->status);
   set_flag(BREAK, true);
   registers->pc = 0xFFFE;
+  clock_ticks += 7;
 }
 
-static void BVC(void) {
-  int8_t offset = read_byte();
-  if (!get_flag(OVERFLOW)) {
-    registers->pc += offset;
-  }
-}
-static void BVS(void) {
-  int8_t offset = read_byte();
-  if (get_flag(OVERFLOW)) {
-    registers->pc += offset;
-  }
+static void BVC(void) { branch(OVERFLOW, false); }
+
+static void BVS(void) { branch(OVERFLOW, true); }
+
+static void CLC(void) {
+  clock_ticks += 2;
+  set_flag(CARRY, false);
 }
 
-static void CLC(void) { set_flag(CARRY, false); }
+static void CLD(void) {
+  clock_ticks += 2;
+  set_flag(DECIMAL, false);
+}
 
-static void CLD(void) { set_flag(DECIMAL, false); }
+static void CLI(void) {
+  clock_ticks += 2;
+  set_flag(INTERRUPT, false);
+}
 
-static void CLI(void) { set_flag(INTERRUPT, false); }
-
-static void CLV(void) { set_flag(OVERFLOW, false); }
+static void CLV(void) {
+  clock_ticks += 2;
+  set_flag(OVERFLOW, false);
+}
 
 /* this is for all compare instructions */
 static void cmp_help(unsigned char value, unsigned char reg) {
@@ -932,73 +969,85 @@ static void cmp_help(unsigned char value, unsigned char reg) {
   }
 }
 
-static void CMP_help(unsigned char value) { cmp_help(value, registers->accumulator); }
+/* this is simply to have less args for the caller as it's pointless to write
+ * out accumulator each time */
+static void CMP_help(unsigned char value) {
+  cmp_help(value, registers->accumulator);
+}
 
 static void CMP_im(void) {
   unsigned char value = read_byte();
+  clock_ticks += 2;
   CMP_help(value);
 }
 
 static void CMP_zero(void) {
   uint8_t location = read_byte();
   uint8_t value = memory[location];
+  clock_ticks += 3;
   CMP_help(value);
 }
 
 static void CMP_zerox(void) {
   uint8_t location = read_byte();
   uint8_t value = memory[location + registers->x];
+  clock_ticks += 4;
   CMP_help(value);
 }
 
 static void CMP_absolute(void) {
   uint16_t location = read_word();
   uint8_t value = memory[location];
+  clock_ticks += 4;
   CMP_help(value);
 }
 
 static void CMP_absolutex(void) {
   uint16_t location = read_word();
   uint8_t value = memory[location + registers->x];
+  clock_ticks += 4 + page_check(location, registers->x);
   CMP_help(value);
 }
 
 static void CMP_absolutey(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->y);
+  clock_ticks += 4 + page_check(location, registers->y);
   CMP_help(value);
 }
 
 static void CMP_indirectx(void) {
-  uint8_t _location = read_byte();
-  uint16_t location = read_word_at(_location + registers->x);
-  uint8_t value = read_byte_at(location);
-  CMP_help(value);
+  uint8_t address = read_byte();
+  uint8_t *value = indexed_indirect(address);
+  clock_ticks += 6;
+  CMP_help(*value);
 }
 
 static void CMP_indirecty(void) {
-  uint8_t _location = read_byte();
-  uint16_t location = read_word_at(_location);
-  uint8_t value = read_byte_at(location + registers->y);
-  CMP_help(value);
+  uint8_t address = read_byte();
+  uint8_t *value = indirect_indexed(address);
+  CMP_help(*value);
 }
 
-void CPX_help(unsigned char value) { cmp_help(value, registers->x); }
+static void CPX_help(unsigned char value) { cmp_help(value, registers->x); }
 
 static void CPX_im(void) {
   uint8_t value = read_byte();
+  clock_ticks += 2;
   CPX_help(value);
 }
 
 static void CPX_zero(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
+  clock_ticks += 3;
   CPX_help(value);
 }
 
 static void CPX_absolute(void) {
   uint8_t location = read_word();
   uint8_t value = read_byte_at(location);
+  clock_ticks += 4;
   CPX_help(value);
 }
 
@@ -1006,22 +1055,25 @@ static void CPY_help(unsigned char value) { cmp_help(value, registers->y); }
 
 static void CPY_im(void) {
   uint8_t value = read_byte();
+  clock_ticks += 2;
   CPX_help(value);
 }
 
 static void CPY_zero(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
+  clock_ticks += 3;
   CPX_help(value);
 }
 
 static void CPY_absolute(void) {
   uint8_t location = read_word();
   uint8_t value = read_byte_at(location);
+  clock_ticks += 4;
   CPX_help(value);
 }
 
-void DEC_help(uint16_t location) {
+static void DEC_help(uint16_t location) {
   memory[location]--;
   zero_check(memory[location]);
   negative_check(memory[location]);
@@ -1029,21 +1081,25 @@ void DEC_help(uint16_t location) {
 
 static void DEC_zero(void) {
   uint8_t location = read_byte();
+  clock_ticks += 5;
   DEC_help(location);
 }
 
 static void DEC_zerox(void) {
   uint8_t location = read_byte();
+  clock_ticks += 6;
   DEC_help(location);
 }
 
 static void DEC_absolute(void) {
   uint16_t location = read_word();
+  clock_ticks += 6;
   DEC_help(location);
 }
 
 static void DEC_absolutex(void) {
   uint16_t location = read_word();
+  clock_ticks += 7;
   DEC_help(location + registers->x);
 }
 
@@ -1051,12 +1107,14 @@ static void DEX(void) {
   registers->x--;
   zero_check(registers->x);
   negative_check(registers->x);
+  clock_ticks += 2;
 }
 
 static void DEY(void) {
   registers->y--;
   zero_check(registers->y);
   negative_check(registers->y);
+  clock_ticks += 2;
 }
 
 static void EOR_help(uint8_t value) {
@@ -1067,51 +1125,56 @@ static void EOR_help(uint8_t value) {
 
 static void EOR_im(void) {
   uint8_t value = read_byte();
+  clock_ticks += 2;
   EOR_help(value);
 }
 
 static void EOR_zero(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
+  clock_ticks += 3;
   EOR_help(value);
 }
 
 static void EOR_zerox(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
+  clock_ticks += 4;
   EOR_help(value);
 }
 
 static void EOR_absolute(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location);
+  clock_ticks += 4;
   EOR_help(value);
 }
 
 static void EOR_absolutex(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->x);
+  clock_ticks += 4 + page_check(location, registers->x);
   EOR_help(value);
 }
 
 static void EOR_absolutey(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->y);
+  clock_ticks += 4 + page_check(location, registers->y);
   EOR_help(value);
 }
 
 static void EOR_indirectx(void) {
-  uint8_t _location = read_byte();
-  uint8_t location = read_byte_at(_location + registers->x);
-  uint16_t value = read_word_at(location);
-  EOR_help(value);
+  uint8_t address = read_byte();
+  uint8_t *value = indexed_indirect(address);
+  clock_ticks += 6;
+  EOR_help(*value);
 }
 
 static void EOR_indirecty(void) {
-  uint8_t _location = read_byte();
-  uint8_t location = read_byte_at(_location);
-  uint16_t value = read_word_at(location);
-  EOR_help(value);
+  uint8_t address = read_byte();
+  uint8_t *value = indirect_indexed(address);
+  EOR_help(*value);
 }
 
 static void INC_help(uint16_t location) {
@@ -1122,47 +1185,58 @@ static void INC_help(uint16_t location) {
 
 static void INC_zero(void) {
   uint8_t location = read_byte();
+  clock_ticks += 5;
   INC_help(location);
 }
 
 static void INC_zerox(void) {
   uint8_t location = read_byte();
+  clock_ticks += 6;
   INC_help(location);
 }
 
 static void INC_absolute(void) {
   uint8_t location = read_word();
+  clock_ticks += 6;
   INC_help(location);
 }
 
 static void INC_absolutex(void) {
   uint8_t location = read_word();
+  clock_ticks += 7;
   INC_help(location);
 }
 
 static void INX(void) {
   registers->x++;
+  clock_ticks += 2;
   zero_check(registers->x);
   negative_check(registers->x);
 }
 
 static void INY(void) {
   registers->y++;
+  clock_ticks += 2;
   zero_check(registers->y);
   negative_check(registers->y);
 }
 
-static void JMP_absolute(void) { registers->pc = read_word(); }
+static void JMP_absolute(void) {
+  clock_ticks += 3;
+  registers->pc = read_word();
+}
 
 static void JMP_indirect(void) {
   uint16_t location = read_word();
   uint16_t jmp_to = read_word_at(location);
+  clock_ticks += 5;
   registers->pc = jmp_to;
 }
 
 static void JSR(void) {
   registers->stack_pointer[registers->_sp] = registers->pc - 1;
   registers->pc = read_word();
+  clock_ticks += 6;
 }
 
 void LDA_help(uint16_t value) {
@@ -1173,34 +1247,48 @@ void LDA_help(uint16_t value) {
 
 static void LDA_im(void) {
   uint8_t value = read_byte();
-  printf("LDA value: %x\n", value);
+  clock_ticks += 2;
   LDA_help(value);
 }
 
-static void LDA_zero(void) { LDA_help(memory[read_byte()]); }
+static void LDA_zero(void) {
+  clock_ticks += 3;
+  LDA_help(memory[read_byte()]);
+}
 
-static void LDA_zerox(void) { LDA_help(memory[read_byte() + registers->x]); }
+static void LDA_zerox(void) {
+  clock_ticks += 4;
+  LDA_help(memory[read_byte() + registers->x]);
+}
 
-static void LDA_absolute(void) { LDA_help(memory[read_word()]); }
+static void LDA_absolute(void) {
+  clock_ticks += 4;
+  LDA_help(memory[read_word()]);
+}
 
-static void LDA_absolutex(void) { LDA_help(memory[read_word() + registers->x]); }
+static void LDA_absolutex(void) {
+  uint16_t address = read_word();
+  clock_ticks += 4 + page_check(address, registers->x);
+  LDA_help(memory[address + registers->x]);
+}
 
-static void LDA_absolutey(void) { LDA_help(memory[read_word() + registers->y]); }
+static void LDA_absolutey(void) {
+  uint16_t address = read_word();
+  clock_ticks += 4 + page_check(address, registers->y);
+  LDA_help(memory[address + registers->y]);
+}
 
 static void LDA_indirectx(void) {
-  uint8_t _location = read_byte() + registers->x;
-  uint16_t location = read_word_at(_location);
-  uint16_t value = read_word_at(location);
-  printf("LDA indirect location: %x, value: %x\n", location, value);
-  LDA_help(value);
+  uint8_t address = read_byte();
+  uint8_t *value = indexed_indirect(address);
+  clock_ticks += 6;
+  LDA_help(*value);
 }
 
 static void LDA_indirecty(void) {
-  uint8_t _location = read_byte() + registers->y;
-  uint16_t location = read_word_at(_location);
-  uint16_t value = read_word_at(location);
-  printf("LDA value: %x\n", value);
-  LDA_help(value);
+  uint8_t address = read_byte();
+  uint8_t *value = indirect_indexed(address);
+  LDA_help(*value);
 }
 
 static void LDX_help(uint8_t value) {
@@ -1211,17 +1299,30 @@ static void LDX_help(uint8_t value) {
 
 static void LDX_im(void) {
   uint8_t value = read_byte();
-  printf("ldx value: %x\n", value);
+  clock_ticks += 2;
   LDX_help(value);
 }
 
-static void LDX_zero(void) { LDX_help(memory[read_byte()]); }
+static void LDX_zero(void) {
+  clock_ticks += 3;
+  LDX_help(memory[read_byte()]);
+}
 
-static void LDX_zeroy(void) { LDX_help(memory[read_byte() + registers->y]); }
+static void LDX_zeroy(void) {
+  clock_ticks += 4;
+  LDX_help(memory[read_byte() + registers->y]);
+}
 
-static void LDX_absolute(void) { LDX_help(memory[read_word()]); }
+static void LDX_absolute(void) {
+  clock_ticks += 4;
+  LDX_help(memory[read_word()]);
+}
 
-static void LDX_absolutey(void) { LDX_help(memory[read_word() + registers->y]); }
+static void LDX_absolutey(void) {
+  uint16_t address = read_word();
+  clock_ticks += 4 + page_check(address, registers->y);
+  LDX_help(memory[address + registers->y]);
+}
 
 static void LDY_help(uint8_t value) {
   registers->y = value;
@@ -1229,142 +1330,190 @@ static void LDY_help(uint8_t value) {
   negative_check(registers->y);
 }
 
-static void LDY_im(void) { LDY_help(read_byte()); }
+static void LDY_im(void) {
+  clock_ticks += 2;
+  LDY_help(read_byte());
+}
 
-static void LDY_zero(void) { LDY_help(memory[read_byte()]); }
+static void LDY_zero(void) {
+  clock_ticks += 3;
+  LDY_help(memory[read_byte()]);
+}
 
-static void LDY_zerox(void) { LDY_help(memory[read_byte() + registers->x]); }
+static void LDY_zerox(void) {
+  clock_ticks += 4;
+  LDY_help(memory[read_byte() + registers->x]);
+}
 
-static void LDY_absolute(void) { LDY_help(memory[read_word()]); }
+static void LDY_absolute(void) {
+  clock_ticks += 4;
+  LDY_help(memory[read_word()]);
+}
 
-static void LDY_absolutex(void) { LDY_help(memory[read_word() + registers->y]); }
+static void LDY_absolutex(void) {
+  uint16_t address = read_word();
+  clock_ticks += 4 + page_check(address, registers->x);
+  LDY_help(memory[read_word() + registers->x]);
+}
 
 static void LSR_help(uint8_t *value) {
-  *value >>= 1;
+  (*value) >>= 1;
   carry_check(*value);
   zero_check(*value);
   negative_check(*value);
 }
 
-static void LSR_accumulator(void) { LSR_help(&registers->accumulator); }
+static void LSR_accumulator(void) {
+  clock_ticks += 2;
+  LSR_help(&registers->accumulator);
+}
 
 static void LSR_zero(void) {
   uint8_t location = read_byte();
+  clock_ticks += 5;
   LSR_help(dereference_address(location));
 }
 
 static void LSR_zerox(void) {
   uint8_t location = read_byte();
+  clock_ticks += 6;
   LSR_help(dereference_address(location + registers->x));
 }
 
 static void LSR_absolute(void) {
   uint16_t location = read_word();
+  clock_ticks += 6;
   LSR_help(dereference_address(location));
 }
 
 static void LSR_absolutex(void) {
   uint16_t location = read_word();
+  clock_ticks += 7;
   LSR_help(dereference_address(location + registers->x));
 }
 
-static void NOP(void) { registers->pc++; }
+static void NOP(void) {
+  clock_ticks += 2;
+  registers->pc++;
+}
 
 static void ORA_help(uint16_t value) {
-  registers->accumulator |= read_byte();
+  registers->accumulator |= value;
   zero_check(registers->accumulator);
   negative_check(registers->accumulator);
 }
 
 static void ORA_im(void) {
   uint8_t value = read_byte();
+  clock_ticks += 2;
   ORA_help(value);
 }
 
 static void ORA_zero(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
+  clock_ticks += 3;
   ORA_help(value);
 }
 
 static void ORA_zerox(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
+  clock_ticks += 4;
   ORA_help(value);
 }
 
 static void ORA_absolute(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location);
+  clock_ticks += 4;
   ORA_help(value);
 }
 
 static void ORA_absolutex(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->x);
+  clock_ticks += 4 + page_check(location, registers->x);
   ORA_help(value);
 }
 
 static void ORA_absolutey(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->y);
+  clock_ticks += 4 + page_check(location, registers->y);
   ORA_help(value);
 }
 
 static void ORA_indirectx(void) {
-  uint8_t _location = read_byte();
-  uint8_t location = read_word_at(_location + registers->x);
-  uint8_t value = read_byte_at(location);
-  ORA_help(value);
+  uint8_t address = read_byte();
+  uint8_t *value = indexed_indirect(address);
+  clock_ticks += 6;
+  ORA_help(*value);
 }
 
 static void ORA_indirecty(void) {
-  uint8_t _location = read_byte();
-  uint8_t location = read_word_at(_location);
-  uint8_t value = read_byte_at(location + registers->y);
-  ORA_help(value);
+  uint8_t address = read_byte();
+  uint8_t *value = indirect_indexed(address);
+  ORA_help(*value);
 }
 
-static void PHA(void) { push_to_stack(read_byte()); }
+static void PHA(void) {
+  clock_ticks += 3;
+  push_to_stack(read_byte());
+}
 
-static void PHP(void) { push_to_stack(registers->status); }
+static void PHP(void) {
+  clock_ticks += 3;
+  push_to_stack(registers->status);
+}
 
-static void PLA(void) { registers->accumulator = get_from_stack(); }
+static void PLA(void) {
+  clock_ticks += 4;
+  registers->accumulator = pop_from_stack();
+}
 
-static void PLP(void) { registers->status = get_from_stack(); }
+static void PLP(void) {
+  clock_ticks += 4;
+  registers->status = pop_from_stack();
+}
 
-void ROL_help(uint8_t *location) {
-  /* shifts the accumulator (to be changed later to support different addressing
-   * modes) by 1 */
+static void ROL_help(uint8_t *location) {
   *location = (*location << 1) | (*location >> 7);
   carry_check(*location);
   zero_check(*location);
   negative_check(*location);
 }
 
-static void ROL_accumulator(void) { ROL_help(&registers->accumulator); }
+static void ROL_accumulator(void) {
+  clock_ticks += 2;
+  ROL_help(&registers->accumulator);
+}
 
 static void ROL_zero(void) {
   uint8_t location = read_byte();
+  clock_ticks += 5;
   ROL_help(dereference_address(location));
 }
 
 static void ROL_zerox(void) {
   uint8_t location = read_byte();
+  clock_ticks += 6;
   ROL_help(dereference_address(location + registers->x));
 }
 
 static void ROL_absolute(void) {
   uint16_t location = read_word();
+  clock_ticks += 6;
   ROL_help(dereference_address(location));
 }
 
 static void ROL_absolutex(void) {
   uint16_t location = read_word();
+  clock_ticks += 7;
   ROL_help(dereference_address(location + registers->x));
 }
 
-void ROR_help(uint8_t *location) {
+static void ROR_help(uint8_t *location) {
   /* shifts the accumulator (to be changed later to support different addressing
    * modes) by 1 */
   *location = (*location >> 1) | (*location << 7);
@@ -1373,36 +1522,45 @@ void ROR_help(uint8_t *location) {
   negative_check(*location);
 }
 
-static void ROR_accumulator(void) { ROR_help(&registers->accumulator); }
+static void ROR_accumulator(void) {
+  clock_ticks += 2;
+  ROR_help(&registers->accumulator);
+}
 
 static void ROR_zero(void) {
   uint8_t location = read_byte();
+  clock_ticks += 5;
   ROR_help(dereference_address(location));
 }
 
 static void ROR_zerox(void) {
   uint8_t location = read_byte();
+  clock_ticks += 6;
   ROR_help(dereference_address(location + registers->x));
 }
 
 static void ROR_absolute(void) {
   uint16_t location = read_word();
+  clock_ticks += 6;
   ROR_help(dereference_address(location));
 }
 
 static void ROR_absolutex(void) {
   uint16_t location = read_word();
+  clock_ticks += 7;
   ROR_help(dereference_address(location + registers->x));
 }
 
 static void RTI(void) {
-  registers->status = get_from_stack();
+  registers->status = pop_from_stack();
   registers->pc++;
+  clock_ticks += 6;
 }
 
 static void RTS(void) {
-  registers->pc = get_from_stack();
+  registers->pc = pop_from_stack();
   registers->pc++;
+  clock_ticks += 6;
 }
 
 static void SBC_help(uint8_t amt) {
@@ -1416,41 +1574,48 @@ static void SBC_help(uint8_t amt) {
 
 static void SBC_im(void) {
   uint8_t value = read_byte();
+  clock_ticks += 2;
   SBC_help(value);
 }
 
 static void SBC_zero(void) {
   uint8_t location = read_byte();
+  clock_ticks += 3;
   SBC_help(read_byte_at(location));
 }
 
 static void SBC_zerox(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
+  clock_ticks += 4;
   SBC_help(value);
 }
 
 static void SBC_absolute(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location);
+  clock_ticks += 4;
   SBC_help(value);
 }
 
 static void SBC_absolutex(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->x);
+  clock_ticks += 4 + page_check(location, registers->x);
   SBC_help(value);
 }
 
 static void SBC_absolutey(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location + registers->y);
+  clock_ticks += 4 + page_check(location, registers->y);
   SBC_help(value);
 }
 
 static void SBC_indirectx(void) {
   uint16_t address = read_word();
   uint8_t *ptr = indexed_indirect(address);
+  clock_ticks += 6;
   SBC_help(*ptr);
 }
 
@@ -1460,38 +1625,53 @@ static void SBC_indirecty(void) {
   SBC_help(*ptr);
 }
 
-static void SEC(void) { set_flag(CARRY, true); }
-static void SED(void) { set_flag(DECIMAL, true); }
-static void SEI(void) { set_flag(INTERRUPT, true); }
+static void SEC(void) {
+  clock_ticks += 2;
+  set_flag(CARRY, true);
+}
+static void SED(void) {
+  clock_ticks += 2;
+  set_flag(DECIMAL, true);
+}
+static void SEI(void) {
+  clock_ticks += 2;
+  set_flag(INTERRUPT, true);
+}
 
 static void STA_zero(void) {
   uint8_t location = read_byte();
+  clock_ticks += 3;
   write_byte(registers->accumulator, location);
 }
 
 static void STA_zerox(void) {
   uint8_t address = read_byte();
+  clock_ticks += 4;
   write_byte(registers->accumulator, address + registers->x);
 }
 
 static void STA_absolute(void) {
   uint16_t address = read_word();
+  clock_ticks += 4;
   write_byte(registers->accumulator, address);
 }
 
 static void STA_absolutex(void) {
   uint16_t address = read_word();
+  clock_ticks += 4;
   write_byte(registers->accumulator, address + registers->x);
 }
 
 static void STA_absolutey(void) {
   uint16_t address = read_word();
+  clock_ticks += 4;
   write_byte(registers->accumulator, address + registers->y);
 }
 
 static void STA_indirectx(void) {
   uint8_t address = read_byte();
   uint8_t *ptr = indexed_indirect(address);
+  clock_ticks += 6;
   *ptr = registers->accumulator;
 }
 
@@ -1501,45 +1681,67 @@ static void STA_indirecty(void) {
   *ptr = registers->accumulator;
 }
 
-static void STX_zero(void) { write_byte(registers->x, read_byte()); }
-static void STX_zeroy(void) { write_byte(registers->x, read_byte()); }
-static void STX_absolute(void) { write_byte(registers->x, read_word()); }
+static void STX_zero(void) {
+  clock_ticks += 3;
+  write_byte(registers->x, read_byte());
+}
+static void STX_zeroy(void) {
+  clock_ticks += 4;
+  write_byte(registers->x, read_byte());
+}
+static void STX_absolute(void) {
+  clock_ticks += 4;
+  write_byte(registers->x, read_word());
+}
 
-static void STY_zero(void) { write_byte(registers->y, read_byte()); }
-static void STY_zerox(void) { write_byte(registers->y, read_byte() + registers->x); }
+static void STY_zero(void) {
+  clock_ticks += 3;
+  write_byte(registers->y, read_byte());
+}
+static void STY_zerox(void) {
+  clock_ticks += 4;
+  write_byte(registers->y, read_byte() + registers->x);
+}
 static void STY_absolute(void) {
+  clock_ticks += 4;
   write_byte(registers->y, read_word() + registers->x);
 }
 
 static void TAX(void) {
+  clock_ticks += 2;
   registers->x = registers->accumulator;
   zero_check(registers->x);
   negative_check(registers->x);
 }
 
 static void TAY(void) {
+  clock_ticks += 4;
   registers->y = registers->accumulator;
   zero_check(registers->y);
   negative_check(registers->y);
 }
 static void TSX(void) {
+  clock_ticks += 2;
   registers->x = peek_from_stack();
   zero_check(registers->x);
   negative_check(registers->x);
 }
 
 static void TXA(void) {
+  clock_ticks += 2;
   registers->accumulator = peek_from_stack();
   zero_check(registers->accumulator);
   negative_check(registers->accumulator);
 }
 static void TXS(void) {
+  clock_ticks += 2;
   push_to_stack(registers->x);
   zero_check(registers->x);
   negative_check(registers->x);
 }
 
 static void TYA(void) {
+  clock_ticks += 2;
   registers->accumulator = registers->y;
   zero_check(registers->accumulator);
   negative_check(registers->accumulator);
@@ -1550,17 +1752,14 @@ static void TYA(void) {
 
 /* add status flags for the following ones, might be unnecessary tbh, because of
  * the fact they're done in the helper functions */
-static void SKW(void) {
-  read_word();
-}
+static void SKW(void) { read_word(); }
 
-static void HLT(void) {
-  exit(1);
-}
+static void HLT(void) { exit(1); }
 
 static void ASO_absolute(void) {
   uint16_t location = read_word();
-  uint8_t *value_ptr= dereference_address(location);
+  uint8_t *value_ptr = dereference_address(location);
+  clock_ticks += 6;
   ASL_help(value_ptr);
   ORA_help(*value_ptr);
 }
@@ -1568,6 +1767,7 @@ static void ASO_absolute(void) {
 static void ASO_absolutex(void) {
   uint16_t location = read_word();
   uint8_t *value_ptr = dereference_address(location + registers->x);
+  clock_ticks += 7;
   ASL_help(value_ptr);
   ORA_help(*value_ptr);
 }
@@ -1575,6 +1775,7 @@ static void ASO_absolutex(void) {
 static void ASO_absolutey(void) {
   uint16_t location = read_word();
   uint8_t *value_ptr = dereference_address(location + registers->y);
+  clock_ticks += 7;
   ASL_help(value_ptr);
   ORA_help(*value_ptr);
 }
@@ -1589,6 +1790,7 @@ static void ASO_zero(void) {
 static void ASO_zerox(void) {
   uint8_t location = read_byte();
   uint8_t *value = &memory[location + registers->x];
+  clock_ticks += 5;
   ASL_help(value);
   ORA_help(*value);
 }
@@ -1596,6 +1798,7 @@ static void ASO_zerox(void) {
 static void ASO_indirectx(void) {
   uint8_t address = read_byte();
   uint8_t *dereferenced = indexed_indirect(address);
+  clock_ticks += 8;
   ASL_help(dereferenced);
   ORA_help(*dereferenced);
 }
@@ -1603,6 +1806,7 @@ static void ASO_indirectx(void) {
 static void ASO_indirecty(void) {
   uint8_t address = read_byte();
   uint8_t *dereferenced = indirect_indexed(address);
+  clock_ticks += 2; /* because indirect_indexed increments 4 */
   ASL_help(dereferenced);
   ORA_help(*dereferenced);
 }
@@ -1610,6 +1814,7 @@ static void ASO_indirecty(void) {
 static void RLA_absolute(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = dereference_address(address);
+  clock_ticks += 6;
   ROL_help(dereferenced);
   AND_help(*dereferenced);
 }
@@ -1617,6 +1822,7 @@ static void RLA_absolute(void) {
 static void RLA_absolutex(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = dereference_address(address + registers->x);
+  clock_ticks += 7;
   ROL_help(dereferenced);
   AND_help(*dereferenced);
 }
@@ -1624,6 +1830,7 @@ static void RLA_absolutex(void) {
 static void RLA_absolutey(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = dereference_address(address + registers->y);
+  clock_ticks += 7;
   ROL_help(dereferenced);
   AND_help(*dereferenced);
 }
@@ -1631,6 +1838,7 @@ static void RLA_absolutey(void) {
 static void RLA_zero(void) {
   uint8_t address = read_byte();
   uint8_t *dereferenced = dereference_address(address);
+  clock_ticks += 5;
   ROL_help(dereferenced);
   AND_help(*dereferenced);
 }
@@ -1638,6 +1846,7 @@ static void RLA_zero(void) {
 static void RLA_zerox(void) {
   uint8_t address = read_byte();
   uint8_t *dereferenced = dereference_address(address + registers->x);
+  clock_ticks += 6;
   ROL_help(dereferenced);
   AND_help(*dereferenced);
 }
@@ -1645,6 +1854,7 @@ static void RLA_zerox(void) {
 static void RLA_indirectx(void) {
   uint8_t address = read_byte();
   uint8_t *dereferenced = indexed_indirect(address);
+  clock_ticks += 8;
   ROL_help(dereferenced);
   AND_help(*dereferenced);
 }
@@ -1652,6 +1862,7 @@ static void RLA_indirectx(void) {
 static void RLA_indirecty(void) {
   uint8_t address = read_byte();
   uint8_t *dereferenced = indirect_indexed(address);
+  clock_ticks += 2;
   ROL_help(dereferenced);
   AND_help(*dereferenced);
 }
@@ -1659,6 +1870,7 @@ static void RLA_indirecty(void) {
 static void LSE_absolute(void) {
   uint16_t location = read_word();
   uint8_t *value_ptr = dereference_address(location);
+  clock_ticks += 6;
   LSR_help(value_ptr);
   EOR_help(*value_ptr);
 }
@@ -1666,6 +1878,7 @@ static void LSE_absolute(void) {
 static void LSE_absolutex(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = dereference_address(address + registers->x);
+  clock_ticks += 7;
   LSR_help(dereferenced);
   EOR_help(*dereferenced);
 }
@@ -1673,6 +1886,7 @@ static void LSE_absolutex(void) {
 static void LSE_absolutey(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = dereference_address(address + registers->y);
+  clock_ticks += 7;
   LSR_help(dereferenced);
   EOR_help(*dereferenced);
 }
@@ -1680,6 +1894,7 @@ static void LSE_absolutey(void) {
 static void LSE_zero(void) {
   uint8_t address = read_byte();
   uint8_t *dereferenced = dereference_address(address);
+  clock_ticks += 5;
   LSR_help(dereferenced);
   EOR_help(*dereferenced);
 }
@@ -1687,6 +1902,7 @@ static void LSE_zero(void) {
 static void LSE_zerox(void) {
   uint8_t address = read_byte();
   uint8_t *dereferenced = dereference_address(address);
+  clock_ticks += 6;
   LSR_help(dereferenced);
   EOR_help(*dereferenced);
 }
@@ -1694,6 +1910,7 @@ static void LSE_zerox(void) {
 static void LSE_indirectx(void) {
   uint8_t address = read_byte();
   uint8_t *dereferenced = indexed_indirect(address);
+  clock_ticks += 8;
   LSR_help(dereferenced);
   EOR_help(*dereferenced);
 }
@@ -1701,13 +1918,15 @@ static void LSE_indirectx(void) {
 static void LSE_indirecty(void) {
   uint8_t address = read_byte();
   uint8_t *dereferenced = indirect_indexed(address);
+  clock_ticks += 2;
   LSR_help(dereferenced);
   EOR_help(*dereferenced);
 }
 
-static void RRA_absolute(void){
+static void RRA_absolute(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = dereference_address(address);
+  clock_ticks += 6;
   ROR_help(dereferenced);
   ADC_help(*dereferenced);
 }
@@ -1715,6 +1934,7 @@ static void RRA_absolute(void){
 static void RRA_absolutex(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = dereference_address(address + registers->x);
+  clock_ticks += 7;
   ROR_help(dereferenced);
   ADC_help(*dereferenced);
 }
@@ -1722,6 +1942,7 @@ static void RRA_absolutex(void) {
 static void RRA_absolutey(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = dereference_address(address + registers->y);
+  clock_ticks += 7;
   ROR_help(dereferenced);
   ADC_help(*dereferenced);
 }
@@ -1729,6 +1950,7 @@ static void RRA_absolutey(void) {
 static void RRA_zero(void) {
   uint16_t address = read_byte();
   uint8_t *dereferenced = dereference_address(address);
+  clock_ticks += 5;
   ROR_help(dereferenced);
   ADC_help(*dereferenced);
 }
@@ -1736,13 +1958,7 @@ static void RRA_zero(void) {
 static void RRA_zerox(void) {
   uint16_t address = read_byte();
   uint8_t *dereferenced = dereference_address(address + registers->x);
-  ROR_help(dereferenced);
-  ADC_help(*dereferenced);
-}
-
-static void RRA_zeroy(void) {
-  uint16_t address = read_byte();
-  uint8_t *dereferenced = dereference_address(address + registers->y);
+  clock_ticks += 6;
   ROR_help(dereferenced);
   ADC_help(*dereferenced);
 }
@@ -1750,6 +1966,7 @@ static void RRA_zeroy(void) {
 static void RRA_indirectx(void) {
   uint16_t address = read_byte();
   uint8_t *dereferenced = indexed_indirect(address);
+  clock_ticks += 8;
   ROR_help(dereferenced);
   ADC_help(*dereferenced);
 }
@@ -1757,6 +1974,7 @@ static void RRA_indirectx(void) {
 static void RRA_indirecty(void) {
   uint16_t address = read_byte();
   uint8_t *dereferenced = indirect_indexed(address);
+  clock_ticks += 2;
   ROR_help(dereferenced);
   ADC_help(*dereferenced);
 }
@@ -1764,42 +1982,35 @@ static void RRA_indirecty(void) {
 static void AXS_absolute(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = dereference_address(address);
-  *dereferenced = registers->accumulator & registers->x;
-}
-
-static void AXS_absolutey(void) {
-  uint16_t address = read_word();
-  uint8_t *dereferenced = dereference_address(address + registers->x);
+  clock_ticks += 4;
   *dereferenced = registers->accumulator & registers->x;
 }
 
 static void AXS_zero(void) {
   uint8_t address = read_byte();
   uint8_t *dereferenced = dereference_address(address);
+  clock_ticks += 3;
   *dereferenced = registers->accumulator & registers->x;
 }
 
 static void AXS_zeroy(void) {
   uint8_t address = read_byte();
   uint8_t *dereferenced = dereference_address(address + registers->y);
+  clock_ticks += 4;
   *dereferenced = registers->accumulator & registers->x;
 }
 
 static void AXS_indirectx(void) {
   uint8_t address = read_byte();
   uint8_t *dereferenced = indexed_indirect(address);
-  *dereferenced = registers->accumulator & registers->x;
-}
-
-static void AXS_indirecty(void) {
-  uint8_t address = read_byte();
-  uint8_t *dereferenced = indirect_indexed(address);
+  clock_ticks += 6;
   *dereferenced = registers->accumulator & registers->x;
 }
 
 static void LAX_absolute(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = dereference_address(address);
+  clock_ticks += 4;
   registers->x = *dereferenced;
   registers->accumulator = *dereferenced;
 }
@@ -1807,6 +2018,7 @@ static void LAX_absolute(void) {
 static void LAX_absolutey(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = dereference_address(address + registers->y);
+  clock_ticks += 4 + page_check(address, registers->y);
   registers->x = *dereferenced;
   registers->accumulator = *dereferenced;
 }
@@ -1814,6 +2026,7 @@ static void LAX_absolutey(void) {
 static void LAX_zero(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = dereference_address(address);
+  clock_ticks += 3;
   registers->x = *dereferenced;
   registers->accumulator = *dereferenced;
 }
@@ -1821,6 +2034,7 @@ static void LAX_zero(void) {
 static void LAX_zeroy(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = dereference_address(address + registers->y);
+  clock_ticks += 4;
   registers->x = *dereferenced;
   registers->accumulator = *dereferenced;
 }
@@ -1828,6 +2042,7 @@ static void LAX_zeroy(void) {
 static void LAX_indirectx(void) {
   uint16_t address = read_word();
   uint8_t *dereferenced = indexed_indirect(address);
+  clock_ticks += 6;
   registers->x = *dereferenced;
   registers->accumulator = *dereferenced;
 }
@@ -1885,37 +2100,37 @@ static void INS_help(uint8_t *address) {
 }
 
 static void INS_absolute(void) {
-	uint16_t address = read_word();
-	INS_help(dereference_address(address));
+  uint16_t address = read_word();
+  INS_help(dereference_address(address));
 }
 
 static void INS_absolutex(void) {
-	uint16_t address = read_word();
-	INS_help(dereference_address(address + registers->x));
+  uint16_t address = read_word();
+  INS_help(dereference_address(address + registers->x));
 }
 
 static void INS_absolutey(void) {
-	uint16_t address = read_word();
-	INS_help(dereference_address(address + registers->y));
+  uint16_t address = read_word();
+  INS_help(dereference_address(address + registers->y));
 }
 
 static void INS_zero(void) {
-	uint8_t address = read_byte();
+  uint8_t address = read_byte();
   INS_help(dereference_address(address));
 }
 
 static void INS_zerox(void) {
-	uint8_t address = read_byte();
+  uint8_t address = read_byte();
   INS_help(dereference_address(address + registers->x));
 }
 
 static void INS_indirectx(void) {
-	uint8_t address = read_byte();
+  uint8_t address = read_byte();
   INS_help(indexed_indirect(address));
 }
 
 static void INS_indirecty(void) {
-	uint8_t address = read_byte();
+  uint8_t address = read_byte();
   INS_help(indirect_indexed(address));
 }
 
@@ -1951,7 +2166,8 @@ static void XAS(void) {
 /* TODO */
 static void AXA_absolutey(void) {
   uint16_t location = read_word();
-  uint8_t written = registers->accumulator & registers->x & ((location >> 8) + 1);
+  uint8_t written =
+      registers->accumulator & registers->x & ((location >> 8) + 1);
   write_byte(written, location + registers->y);
 }
 
@@ -1961,7 +2177,6 @@ static void AXA_indirecty(void) {
   write_byte(written, *indirect_indexed(location));
 }
 
-/* only has immediate */
 static void ANC(void) {
   uint8_t value = read_byte();
   registers->accumulator &= value;
