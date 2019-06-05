@@ -1,5 +1,9 @@
 #ifndef CPU_H
 #define CPU_H
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -52,7 +56,8 @@ typedef struct {
   uint8_t status;          /** NVsB DIZC, @see FLAGS */
 } processor_registers;
 
-/* maybe use this for nice bundling dunno? would reduce globals which is nice (clock_ticks)*/
+/* maybe use this for nice bundling dunno? would reduce globals which is nice
+ * (clock_ticks) currently not in use*/
 typedef struct {
   processor_registers registers;
   memory_map memory;
@@ -62,5 +67,8 @@ typedef struct {
 extern void interpret_opcode(void);
 extern void initialize_cpu(const unsigned char *data, size_t size, memory_map *m, processor_registers *reg);
 extern unsigned long long clock_ticks; /* this is for the PPU to be able to time the draws */
+#ifdef __cplusplus
+}
+#endif
 
 #endif // CPU_H
