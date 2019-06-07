@@ -659,7 +659,7 @@ extern void interpret_opcode(void) {
 }
 
 static inline void push_to_stack(unsigned char value) {
-  if (registers->_sp >= 0) {
+  if (registers->_sp - 1 < registers->_sp) {
     registers->stack_pointer[registers->_sp--] = value;
   }
   else {
@@ -669,7 +669,7 @@ static inline void push_to_stack(unsigned char value) {
 }
 
 static inline unsigned char pop_from_stack(void) {
-  if (registers->_sp < STACK_SIZE) {
+  if (registers->_sp + 1 > registers->_sp) {
     return registers->stack_pointer[++registers->_sp];
   }
   else {
