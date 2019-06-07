@@ -2,11 +2,12 @@
 #define CPU_H
 #ifdef __cplusplus
 extern "C" {
+#else
+#include <stdbool.h>
 #endif
 
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 /* @deprecated */
 typedef enum {
@@ -27,11 +28,11 @@ typedef enum {
   UNKNOWN
 } addressing_modes_t;
 
+
 /* this is for editing processor status */
 typedef enum {
   NEGATIVE    = 0x1 << 7,
   OVERFLOW    = 0x1 << 6,
-
   BREAK       = 0x1 << 4,
   DECIMAL     = 0x1 << 3,
   INTERRUPT   = 0x1 << 2,
@@ -40,7 +41,7 @@ typedef enum {
 } flags_t;
 
 enum m6502constants {
-	STACK_SIZE            = 256,
+  STACK_SIZE            = 256,
   RAM_SIZE              = 0x1fff,
   PPU_REGISTERS_SIZE    = 0x2000,
   APU_REGISTERS_SIZE    = 0x18,
