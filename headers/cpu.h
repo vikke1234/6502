@@ -30,7 +30,7 @@ typedef enum {
 typedef enum {
   NEGATIVE    = 0x1 << 7,
   OVERFLOW    = 0x1 << 6,
-  /* flag in 0x1 << 5 is always one */
+
   BREAK       = 0x1 << 4,
   DECIMAL     = 0x1 << 3,
   INTERRUPT   = 0x1 << 2,
@@ -44,7 +44,7 @@ enum m6502constants {
   PPU_REGISTERS_SIZE    = 0x2000,
   APU_REGISTERS_SIZE    = 0x18,
   TEST_REGISTERS_SIZE   = 0x8,
-  ROM_MEMORY_SIZE      = 0xbfe0
+  ROM_MEMORY_SIZE       = 0xbfe0
 };
 
 enum error_codes6502 {
@@ -59,7 +59,7 @@ typedef struct {
   unsigned char ppu_registers    [PPU_REGISTERS_SIZE];  /* actual size 0x8, repeats every 8 bytes */
   unsigned char apu_registers    [APU_REGISTERS_SIZE];
   unsigned char test_registers   [TEST_REGISTERS_SIZE]; /* for when the CPU is in test mode */
-  unsigned char rom              [ROM_MEMORY_SIZE];          /* ROM space and mapper registers */
+  unsigned char rom              [ROM_MEMORY_SIZE];     /* ROM space and mapper registers */
 } memory_map;
 
 typedef struct _processor_registers {
