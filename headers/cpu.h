@@ -63,26 +63,27 @@ typedef struct {
 } memory_map;
 
 typedef struct _processor_registers {
-  uint16_t pc;
-  uint8_t stack_pointer[STACK_SIZE];
-  uint8_t _sp;                /* index where to place things in the stack */
-  uint8_t x, y, accumulator;  /* x, y and accumulator registers */
-  uint8_t status;             /** NVsB DIZC, @see FLAGS */
-} processor_registers;
+  uint16_t  pc;
+  uint8_t   stack_pointer[STACK_SIZE];
+  uint8_t   _sp;                /* index where to place things in the stack */
+  uint8_t   x, y, accumulator;  /* x, y and accumulator registers */
+  uint8_t   status;             /** NVsB DIZC, @see FLAGS */
+} registers_t;
 
 /* maybe use this for nice bundling dunno? would reduce globals which is nice
  * (clock_ticks) currently not in use*/
 typedef struct {
-  processor_registers registers;
+  registers_t registers;
   memory_map memory;
   unsigned long long clock_ticks;
 } processor_t;
 
 extern void interpret_opcode(void);
-extern void initialize_cpu(const unsigned char *data, size_t size, memory_map *m, processor_registers *reg);
+extern void initialize_cpu(const unsigned char *data, size_t size, memory_map *m, registers_t *reg);
+extern prosessor_registers dump_registers(void);
+
 extern unsigned long long clock_ticks; /* this is for the PPU to be able to time the draws */
 #ifdef __cplusplus
 }
-#endif
-
+#endif //_cplusplus
 #endif // CPU_H

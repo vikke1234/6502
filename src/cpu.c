@@ -17,8 +17,8 @@
 
 typedef void (*instruction_pointer)(void);
 
-static processor_registers _registers;
-static processor_registers *registers = &_registers;
+static registers_t _registers;
+static registers_t *registers = &_registers;
 /* for "easier" access to the different parts of memory for e.g. debugging
  * purpuses */
 static memory_map _memory;
@@ -333,7 +333,7 @@ static inline uint16_t read_word_at(uint16_t location);
 /* this will probably be rewritten once the cpu is done and correct file
  * handling is made*/
 extern void initialize_cpu(const unsigned char *data, size_t size,
-                           memory_map *m, processor_registers *reg) {
+                           memory_map *m, registers_t *reg) {
   if (m != NULL) {
     memory = (unsigned char *)m;
   }
@@ -733,6 +733,10 @@ static inline uint8_t read_byte() {
 
 static inline void write_byte(uint8_t value, uint16_t location) {
   memory[location] = value;
+}
+
+extern registers_t dump_registers(void) {
+  return *registers;
 }
 
 static inline void zero_check(uint8_t value) {
