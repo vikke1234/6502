@@ -8,6 +8,7 @@ extern "C" {
 #include <stdlib.h>
 #include <stdbool.h>
 
+/* @deprecated */
 typedef enum {
   IMPLICT,
   ACCUMULATOR,
