@@ -80,9 +80,10 @@ typedef struct {
 
 extern void interpret_opcode(void);
 extern void initialize_cpu(const unsigned char *data, size_t size, memory_map *m, registers_t *reg);
-extern prosessor_registers dump_registers(void);
+extern registers_t dump_registers(void);
 
 extern unsigned long long clock_ticks; /* this is for the PPU to be able to time the draws */
+
 #ifdef __cplusplus
 }
 #endif //_cplusplus

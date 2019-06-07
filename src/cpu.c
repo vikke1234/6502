@@ -245,8 +245,6 @@ static void SBC_zerox(void);
 static void SEC(void);
 static void SED(void);
 static void SEI(void);
-static void SKW_absolute(void);
-static void SKW_absolutex(void);
 static void STA_absolute(void);
 static void STA_absolutex(void);
 static void STA_absolutey(void);
@@ -268,6 +266,9 @@ static void TXA(void);
 static void TXS(void);
 static void TYA(void);
 static void XAS(void);
+/**
+ * @brief does comparison for the different CMP instructions
+*/
 static void cmp_help(unsigned char value, unsigned char reg);
 
 /* theese just check for what the name says and sets the status based on that */
@@ -764,7 +765,7 @@ static inline void overflow_check(uint16_t value, uint16_t result) {
 
 static inline unsigned long long page_check(uint16_t address, uint8_t reg) {
   if (((address + reg) & 0xff00) != (address & 0xff00)) {
-    return 1llu;
+    return 1llu; /* PAGED */
   }
   return 0llu;
 }
