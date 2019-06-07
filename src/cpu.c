@@ -526,7 +526,9 @@ extern void interpret_opcode(void) {
       [0x84] = &STY_zero,
       [0x94] = &STY_zerox,
       [0x8c] = &STY_absolute,
-
+      
+      [0xcb] = &SAX,
+      [0xab] = &OAL,
       [0xaa] = &TAX,
       [0xa8] = &TAY,
       [0xba] = &TSX,
@@ -572,9 +574,11 @@ extern void interpret_opcode(void) {
       [0x83] = &AXS_indirectx,
 
       [0xaf] = &LAX_absolute,
+      [0xbf] = &LAX_absolutey,
       [0xa7] = &LAX_zero,
       [0xb7] = &LAX_zeroy,
       [0xa3] = &LAX_indirectx,
+      [0xb3] = &LAX_indirecty,
 
       [0xcf] = &DCM_absolute,
       [0xdf] = &DCM_absolutex,
@@ -1107,21 +1111,21 @@ static void CPY_help(unsigned char value) { cmp_help(value, registers->y); }
 static void CPY_im(void) {
   uint8_t value = read_byte();
   clock_ticks += 2;
-  CPX_help(value);
+  CPY_help(value);
 }
 
 static void CPY_zero(void) {
   uint8_t location = read_byte();
   uint8_t value = read_byte_at(location);
   clock_ticks += 3;
-  CPX_help(value);
+  CPY_help(value);
 }
 
 static void CPY_absolute(void) {
   uint16_t location = read_word();
   uint8_t value = read_byte_at(location);
   clock_ticks += 4;
-  CPX_help(value);
+  CPY_help(value);
 }
 
 static void DEC_help(uint16_t location) {

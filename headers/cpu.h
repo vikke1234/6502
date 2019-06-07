@@ -9,7 +9,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
-/* @deprecated */
+/** @deprecated */
 typedef enum {
   IMPLICT,
   ACCUMULATOR,
@@ -30,7 +30,7 @@ typedef enum {
 
 
 /* this is for editing processor status */
-typedef enum {
+typedef enum _6502_flags {
   NEGATIVE    = 0x1 << 7,
   OVERFLOW    = 0x1 << 6,
   BREAK       = 0x1 << 4,
