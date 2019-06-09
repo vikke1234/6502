@@ -60,12 +60,12 @@ typedef struct {
  * (clock_ticks) currently not in use*/
 typedef struct {
   processor_registers registers;
-  memory_map memory;
+  uint8_t memory[sizeof(memory_map)];
   unsigned long long clock_ticks;
 } processor_t;
 
 extern void interpret_opcode(void);
-extern void initialize_cpu(const unsigned char *data, size_t size, memory_map *m, processor_registers *reg);
+extern void initialize_cpu(const unsigned char *data, size_t size, processor_t *processor);
 extern unsigned long long clock_ticks; /* this is for the PPU to be able to time the draws */
 #ifdef __cplusplus
 }
