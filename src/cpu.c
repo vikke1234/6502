@@ -1420,7 +1420,7 @@ static void NOP_imm(void) {
   registers->pc++;
 }
 
-static void NOP_abs(void) {
+static void NOP_absolute(void) {
   clock_ticks += 4;
   registers->pc += 2;
 }
