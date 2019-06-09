@@ -6,5 +6,5 @@ include_directories(headers)
 file(GLOB SOURCES "src/cpu.c")
 
 add_definitions("-g -D DEBUG -std=c11")
-add_library(cpu SHARED ${SOURCES})
+add_library(cpu STATIC ${SOURCES})
 set_target_properties(cpu PROPERTIES PUBLIC_HEADER "../headers/cpu.h")
