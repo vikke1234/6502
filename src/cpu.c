@@ -4,6 +4,11 @@
 #include <string.h>
 #ifdef __unix__
 #include <unistd.h>
+#elif defined(_WIN32) || defined(WIN32)
+#define __attribute__(x)
+#define __always_inline__
+#define inline __inline
+
 #endif
 
 #define ANSI_YELLOW "\x1b[33m"
@@ -16,8 +21,8 @@
 
 typedef void (*instruction_pointer)(void);
 
-static processor_registers _registers;
-static processor_registers *registers = &_registers;
+static registers_t _registers;
+static registers_t *registers = &_registers;
 /* for "easier" access to the different parts of memory for e.g. debugging
  * purpuses */
 processor_t _processor, *processor;
@@ -151,7 +156,7 @@ static void LAX_zeroy(void);
 static void LDA_absolute(void);
 static void LDA_absolutex(void);
 static void LDA_absolutey(void);
-static void LDA_help(uint16_t value);
+static void LDA_help(uint8_t value);
 static void LDA_im(void);
 static void LDA_indirectx(void);
 static void LDA_indirecty(void);
@@ -243,8 +248,6 @@ static void SBC_zerox(void);
 static void SEC(void);
 static void SED(void);
 static void SEI(void);
-static void SKW_absolute(void);
-static void SKW_absolutex(void);
 static void STA_absolute(void);
 static void STA_absolutex(void);
 static void STA_absolutey(void);
@@ -266,6 +269,9 @@ static void TXA(void);
 static void TXS(void);
 static void TYA(void);
 static void XAS(void);
+/**
+ * @brief does comparison for the different CMP instructions
+*/
 static void cmp_help(unsigned char value, unsigned char reg);
 
 /* theese just check for what the name says and sets the status based on that */
@@ -281,10 +287,10 @@ static inline void overflow_check(uint16_t value, uint16_t result);
  * @param reg        The register (x, y) to increment addr with
  * @return 1 if page crossed else 0
  */
-static inline bool page_check(uint16_t address, uint8_t reg);
+static inline unsigned long long page_check(uint16_t address, uint8_t reg);
 
 static inline uint8_t *dereference_address(uint16_t address);
-static inline uint8_t *indexed_indirect(uint8_t address);
+static inline uint8_t *indexed_indirect(uint16_t address);
 /* might get turnt into a macro so the function can access the address */
 
 static inline unsigned char pop_from_stack(void);
@@ -524,7 +530,9 @@ extern void interpret_opcode(void) {
       [0x84] = &STY_zero,
       [0x94] = &STY_zerox,
       [0x8c] = &STY_absolute,
-
+      
+      [0xcb] = &SAX,
+      [0xab] = &OAL,
       [0xaa] = &TAX,
       [0xa8] = &TAY,
       [0xba] = &TSX,
@@ -570,9 +578,11 @@ extern void interpret_opcode(void) {
       [0x83] = &AXS_indirectx,
 
       [0xaf] = &LAX_absolute,
+      [0xbf] = &LAX_absolutey,
       [0xa7] = &LAX_zero,
       [0xb7] = &LAX_zeroy,
       [0xa3] = &LAX_indirectx,
+      [0xb3] = &LAX_indirecty,
 
       [0xcf] = &DCM_absolute,
       [0xdf] = &DCM_absolutex,
@@ -653,18 +663,30 @@ extern void interpret_opcode(void) {
 }
 
 static inline void push_to_stack(unsigned char value) {
-  registers->stack_pointer[registers->_sp++] = value;
+  if (registers->_sp - 1 < registers->_sp) {
+    registers->stack_pointer[registers->_sp--] = value;
+  }
+  else {
+    fprintf(stderr, "Stack Overflow exception, exitting");
+    exit(STACK_OVERFLOW);
+  }
 }
 
 static inline unsigned char pop_from_stack(void) {
-  return registers->stack_pointer[--registers->_sp];
+  if (registers->_sp + 1 > registers->_sp) {
+    return registers->stack_pointer[++registers->_sp];
+  }
+  else {
+    fprintf(stderr, "Stack Underflow exception, exitting");
+    exit(STACK_UNDERFLOW);
+  }
 }
 
 static inline unsigned char peek_from_stack(void) {
   return registers->stack_pointer[registers->_sp - 1];
 }
 
-static inline uint8_t *indexed_indirect(uint8_t address) {
+static inline uint8_t *indexed_indirect(uint16_t address) {
   uint16_t _location = read_word_at(address);
   uint16_t location = read_byte_at(_location + registers->x);
   return &processor->memory[location];
@@ -722,6 +744,10 @@ static inline void write_byte(uint8_t value, uint16_t location) {
   processor->memory[location] = value;
 }
 
+extern registers_t dump_registers(void) {
+  return *registers;
+}
+
 static inline void zero_check(uint8_t value) {
   if (!value) {
     set_flag(ZERO, true);
@@ -745,11 +771,11 @@ static inline void overflow_check(uint16_t value, uint16_t result) {
   }
 }
 
-static inline bool page_check(uint16_t address, uint8_t reg) {
+static inline unsigned long long page_check(uint16_t address, uint8_t reg) {
   if (((address + reg) & 0xff00) != (address & 0xff00)) {
-    return 1;
+    return 1llu; /* PAGED */
   }
-  return 0;
+  return 0llu;
 }
 static inline void carry_check(uint16_t value) {
   if (value & 0xff00) {
@@ -760,7 +786,7 @@ static inline void carry_check(uint16_t value) {
 }
 
 static void ADC_help(uint16_t value) {
-  uint16_t result = registers->accumulator + value + get_flag(CARRY);
+  uint8_t result = registers->accumulator + value + get_flag(CARRY);
   overflow_check(value, result);
   carry_check(result);
   zero_check(result);
@@ -949,11 +975,20 @@ static void BPL(void) { branch(NEGATIVE, false); }
 
 /* TODO */
 static void BRK(void) {
-  push_to_stack(registers->pc);
+
+  push_to_stack((registers->pc >> 8));
+  push_to_stack((registers->pc & 0xff00) >> 8);
+
   push_to_stack(registers->status);
   set_flag(BREAK, true);
   registers->pc = 0xFFFE;
   processor->clock_ticks += 7;
+  /* Do magic here*/
+
+  registers->status = pop_from_stack();
+  registers->pc = (pop_from_stack() << 8);
+  registers->pc &= pop_from_stack();
+
 }
 
 static void BVC(void) { branch(OVERFLOW, false); }
@@ -1070,7 +1105,7 @@ static void CPX_zero(void) {
 }
 
 static void CPX_absolute(void) {
-  uint8_t location = read_word();
+  uint16_t location = read_word();
   uint8_t value = read_byte_at(location);
   processor->clock_ticks += 4;
   CPX_help(value);
@@ -1092,7 +1127,7 @@ static void CPY_zero(void) {
 }
 
 static void CPY_absolute(void) {
-  uint8_t location = read_word();
+  uint16_t location = read_word();
   uint8_t value = read_byte_at(location);
   processor->clock_ticks += 4;
   CPX_help(value);
@@ -1265,7 +1300,7 @@ static void JSR(void) {
   processor->clock_ticks += 6;
 }
 
-void LDA_help(uint16_t value) {
+void LDA_help(uint8_t value) {
   registers->accumulator = value;
   zero_check(registers->accumulator);
   negative_check(registers->accumulator);
@@ -1611,7 +1646,7 @@ static void RTS(void) {
 }
 
 static void SBC_help(uint8_t amt) {
-  uint16_t result = registers->accumulator - amt - get_flag(CARRY);
+  uint8_t result = registers->accumulator - amt - get_flag(CARRY);
   overflow_check(amt, result);
   carry_check(result);
   zero_check(result);
