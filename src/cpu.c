@@ -2,12 +2,19 @@
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 #ifdef __unix__
 #include <unistd.h>
 #elif defined(_WIN32) || defined(WIN32)
+/* required to compile on windows */
 #define __attribute__(x)
 #define __always_inline__
 #define inline __inline
+#define access _access
+#define F_OK 0
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <io.h>
 
 #endif
 
@@ -23,10 +30,10 @@ typedef void (*instruction_pointer)(void);
 
 static registers_t _registers;
 static registers_t *registers = &_registers;
+
 /* for "easier" access to the different parts of memory for e.g. debugging
  * purpuses */
 processor_t _processor, *processor;
-
 
 /* like 150 lines of prototypes, have fun :) */
 static void ADC_absolute(void);
@@ -269,9 +276,10 @@ static void TXA(void);
 static void TXS(void);
 static void TYA(void);
 static void XAS(void);
+
 /**
  * @brief does comparison for the different CMP instructions
-*/
+ */
 static void cmp_help(unsigned char value, unsigned char reg);
 
 /* theese just check for what the name says and sets the status based on that */
@@ -338,11 +346,10 @@ static inline uint16_t read_word_at(uint16_t location);
  * handling is made*/
 extern void initialize_cpu(const unsigned char *data, size_t size,
                            processor_t *processor) {
-  if(size < 0x600) {
+  if (size < 0x600) {
     fprintf(stderr, ANSI_RED "ERROR: couldn't initialize program" ANSI_END);
   }
   if (processor != NULL) {
-
   }
   registers->_sp = 0;
   registers->accumulator = 0;
@@ -354,12 +361,27 @@ extern void initialize_cpu(const unsigned char *data, size_t size,
   memcpy(&processor->memory[registers->pc], &data[0x600], size - 0x600);
 }
 
+extern bool initialize_cpu_filename(char *path) {
+  if (path == NULL && access(path, F_OK) != -1) {
+    return false;
+  }
+  struct stat buf;
+  stat(path, &buf);
+  uint8_t *data = malloc(buf.st_size);
+
+  FILE *fp = fopen(path, "rb");
+  fread(data, 1, buf.st_size, fp);
+  initialize_cpu(data, buf.st_size, NULL);
+  free(data);
+
+  return true;
+}
 /* parser, pass data to initialize cpu and this does the rest */
 extern void interpret_opcode(void) {
   /* there's a lot of boilerplate code, MAYBE it can be reduced with some macro
    * hax but probably not, plus it would be quite cryptic then (they do follow a
    * pattern) */
-  static const instruction_pointer instructions[256] = {
+  static const instruction_pointer instructions[0x100] = {
       [0x69] = &ADC_im,
       [0x65] = &ADC_zero,
       [0x75] = &ADC_zerox,
@@ -530,7 +552,7 @@ extern void interpret_opcode(void) {
       [0x84] = &STY_zero,
       [0x94] = &STY_zerox,
       [0x8c] = &STY_absolute,
-      
+
       [0xcb] = &SAX,
       [0xab] = &OAL,
       [0xaa] = &TAX,
@@ -665,8 +687,7 @@ extern void interpret_opcode(void) {
 static inline void push_to_stack(unsigned char value) {
   if (registers->_sp - 1 < registers->_sp) {
     registers->stack_pointer[registers->_sp--] = value;
-  }
-  else {
+  } else {
     fprintf(stderr, "Stack Overflow exception, exitting");
     exit(STACK_OVERFLOW);
   }
@@ -675,8 +696,7 @@ static inline void push_to_stack(unsigned char value) {
 static inline unsigned char pop_from_stack(void) {
   if (registers->_sp + 1 > registers->_sp) {
     return registers->stack_pointer[++registers->_sp];
-  }
-  else {
+  } else {
     fprintf(stderr, "Stack Underflow exception, exitting");
     exit(STACK_UNDERFLOW);
   }
@@ -702,8 +722,8 @@ static inline uint8_t *indexed_indirect(uint16_t address) {
 
 static inline __attribute__((__always_inline__)) uint8_t *
 dereference_address(uint16_t address) {
-  return &processor->memory[address]; /* always in range due to address being an 2 bytes
-                              long */
+  return &processor->memory[address]; /* always in range due to address being an
+                              2 bytes long */
 }
 
 static inline void set_flag(flags_t flag, bool b) {
@@ -720,13 +740,15 @@ static inline uint8_t get_flag(flags_t flag) {
 }
 
 static inline uint16_t read_word() {
-  uint16_t value = ((processor->memory[registers->pc + 1] << 8) | processor->memory[registers->pc]);
+  uint16_t value = ((processor->memory[registers->pc + 1] << 8) |
+                    processor->memory[registers->pc]);
   registers->pc += 2;
   return value;
 }
 
 static inline uint16_t read_word_at(uint16_t location) {
-  uint16_t value = (processor->memory[location + 1] << 8) | processor->memory[location];
+  uint16_t value =
+      (processor->memory[location + 1] << 8) | processor->memory[location];
   return value;
 }
 
@@ -744,9 +766,7 @@ static inline void write_byte(uint8_t value, uint16_t location) {
   processor->memory[location] = value;
 }
 
-extern registers_t dump_registers(void) {
-  return *registers;
-}
+extern registers_t dump_registers(void) { return *registers; }
 
 static inline void zero_check(uint8_t value) {
   if (!value) {
@@ -988,7 +1008,6 @@ static void BRK(void) {
   registers->status = pop_from_stack();
   registers->pc = (pop_from_stack() << 8);
   registers->pc &= pop_from_stack();
-
 }
 
 static void BVC(void) { branch(OVERFLOW, false); }
@@ -2322,7 +2341,8 @@ static void ANC(void) {
 
 static void LAS(void) {
   uint16_t location = read_word();
-  registers->accumulator = read_byte_at(location + registers->y) & peek_from_stack();
+  registers->accumulator =
+      read_byte_at(location + registers->y) & peek_from_stack();
   processor->clock_ticks += 4 + page_check(location, registers->y);
   negative_check(registers->accumulator);
   zero_check(registers->accumulator);
