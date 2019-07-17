@@ -1,6 +1,7 @@
 #include "../headers/cpu.h"
 #include <stdio.h>
 #include <stdlib.h>
+
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -50,9 +51,9 @@ void print_registers(void) {
 
   fflush(stdout);
 
-  puts("______________________________________________");
-  puts("| PC    | Accumulator | X register   | Y register |");
+  puts  ("______________________________________________");
+  puts  ("| PC    | Accumulator | X register   | Y register |");
   printf("| 0x%.3x | %.3u         | %.3u          | %.3u        |\n", 0, 0, 0,
          0);
-  puts("----------------------------------------------");
+  puts ("----------------------------------------------");
 }
