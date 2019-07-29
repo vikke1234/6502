@@ -45,21 +45,24 @@ enum m6502constants {
   PPU_REGISTERS_SIZE = 0x2000,
   APU_REGISTERS_SIZE = 0x18,
   TEST_REGISTERS_SIZE = 0x8,
-  ROM_MEMORY_SIZE = 0xbfe0
+  ROM_MEMORY_SIZE = 0xbfe0,
+  TOTAL_MEMORY_SIZE = RAM_SIZE + PPU_REGISTERS_SIZE + APU_REGISTERS_SIZE +
+                      TEST_REGISTERS_SIZE + ROM_MEMORY_SIZE
 };
 
 enum error_codes6502 { SUCCESS, STACK_OVERFLOW, STACK_UNDERFLOW };
 
 /* of type unsigned char instead of uint8_t because uint8_t doesn't allow
- * aliasing */
+ * aliasing
+ * CURRENTLY NOT USED */
 typedef struct {
-  unsigned char RAM[RAM_SIZE]; /* RAM size 0x800, mirrored 3 times */
-  unsigned char ppu_registers[PPU_REGISTERS_SIZE]; /* actual size 0x8, repeats
+  unsigned char RAM[RAM_SIZE];                       /* RAM size 0x800, mirrored 3 times */
+  unsigned char ppu_registers[PPU_REGISTERS_SIZE];   /* actual size 0x8, repeats
                                                       every 8 bytes */
   unsigned char apu_registers[APU_REGISTERS_SIZE];
   unsigned char test_registers[TEST_REGISTERS_SIZE]; /* for when the CPU is in
                                                         test mode */
-  unsigned char rom[ROM_MEMORY_SIZE]; /* ROM space and mapper registers */
+  unsigned char rom[ROM_MEMORY_SIZE];                /* ROM space and mapper registers */
 } memory_map;
 
 typedef struct _processor_registers {
@@ -73,15 +76,14 @@ typedef struct _processor_registers {
 /* maybe use this for nice bundling dunno? would reduce globals which is nice
  * (clock_ticks) currently not in use*/
 typedef struct {
-  uint8_t memory[sizeof(memory_map)];
+  uint8_t memory[TOTAL_MEMORY_SIZE];
   registers_t registers;
   unsigned long long clock_ticks;
 } processor_t;
 
 extern void interpret_opcode(void);
 
-extern void initialize_cpu(const unsigned char *data, size_t size,
-                           processor_t *processor);
+extern void initialize_cpu(const unsigned char *data, size_t size);
 extern bool initialize_cpu_filename(char *path);
 extern registers_t dump_registers(void);
 
