@@ -1,4 +1,5 @@
 #include "../headers/cpu.h"
+#include <ncurses.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -6,20 +7,47 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-void print_registers(void);
+void print_registers(WINDOW **windows);
 void print_help(void);
 
+#define REGISTER_AMOUNT 5
+
+WINDOW *main_window = NULL;
+
 int main(int argc, char *argv[]) {
-  if (argc < 3) {
+  if (argc < 2) {
     puts("Please specify file name");
     exit(1);
   }
- 
-  initialize_cpu_filename(argv[1]);
 
-  char input = '\0';
+  if (initialize_cpu_filename(argv[1]) == false) {
+    fprintf(stderr,
+            "Error: could not initialize cpu, file could no be accessed");
+    return 1;
+  }
+  main_window = initscr();
+  int _maxx = 0, _maxy = 0;
+  getmaxyx(main_window, _maxy, _maxx);
+  if (_maxx < 80 || _maxy < 20) {
+    fprintf(stderr, "Error: terminal too small, current x: %d, y: %d\n", _maxx,
+            _maxy);
+    delwin(main_window);
+    return 1;
+  }
+  WINDOW *reg_window = derwin(main_window, 0, 0, 0, 0);
+  WINDOW *register_windows[REGISTER_AMOUNT];
+  for (int i = 0; i < REGISTER_AMOUNT; i++) {
+    register_windows[i] =
+        /* 12 is length of longest name, in this case "accumulator\t" */
+        derwin(reg_window, 0, 0, i*3, _maxx - 20);
+  }
+
+  keypad(reg_window, TRUE);
+  noecho();
+  int input = '\0';
   while (input != 'e') {
-    scanf("%c", &input);
+    print_registers(register_windows);
+    input = getch();
     switch (input) {
     case 'H':
     case 'h':
@@ -27,11 +55,8 @@ int main(int argc, char *argv[]) {
       break;
     case 'N':
     case 'n':
+    case '\n':
       interpret_opcode();
-      print_registers();
-    case 'P':
-    case 'p':
-      print_registers();
       break;
 
     default:
@@ -39,21 +64,34 @@ int main(int argc, char *argv[]) {
       break;
     }
   }
+  for (int i = 0; i < REGISTER_AMOUNT; i++) {
+    delwin(register_windows[i]);
+  }
+  delwin(reg_window);
+  delwin(main_window);
+  endwin();
+  refresh();
   return 0;
 }
 
-void print_help(void) {
-  puts("H/h: show this message");
-  puts("{enter}/n/N: next instruction");
-  puts("P/p: dump registers");
-}
-void print_registers(void) {
+void print_help(void) {}
 
-  fflush(stdout);
+void print_registers(WINDOW **windows) {
+  static uint8_t unpacked[REGISTER_AMOUNT]; /* see line below */
+  static const char *const(strings[REGISTER_AMOUNT]) = {"PC", "Accumulator", "X register",
+                                         "Yregister", "SP"};
 
-  puts  ("______________________________________________");
-  puts  ("| PC    | Accumulator | X register   | Y register |");
-  printf("| 0x%.3x | %.3u         | %.3u          | %.3u        |\n", 0, 0, 0,
-         0);
-  puts ("----------------------------------------------");
+  registers_t registers = dump_registers();
+  unpacked[0] = registers.pc;
+  unpacked[1] = registers.x;
+  unpacked[2] = registers.y;
+  unpacked[3] = registers._sp;
+  unpacked[4] = registers.status;
+
+  /* BUG */
+  for (int i = 0; i < REGISTER_AMOUNT; i++) {
+    mvwprintw(windows[i], 1, 1, "%s\n", strings[i]);
+    mvwprintw(windows[i], 2, 1, "0x%x", unpacked[i]);
+    wrefresh(windows[i]);
+  }
 }
