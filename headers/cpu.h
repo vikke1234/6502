@@ -9,24 +9,8 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
-/** @deprecated */
-typedef enum {
-  IMPLICT,
-  ACCUMULATOR,
-  IMMEDIATE,
-  ZERO_PAGE,
-  ZERO_PAGE_X,
-  ZERO_PAGE_Y,
-  RELATIVE,
-  IMPLIED,
-  ABSOLUTE,
-  ABSOLUTE_X,
-  ABSOLUTE_Y,
-  INDIRECT,
-  INDIRECT_X,
-  INDIRECT_Y,
-  UNKNOWN
-} addressing_modes_t;
+#include "cartridge.h"
+
 
 /* this is for editing processor status */
 typedef enum _6502_flags {
@@ -56,13 +40,13 @@ enum error_codes6502 { SUCCESS, STACK_OVERFLOW, STACK_UNDERFLOW };
  * aliasing
  * CURRENTLY NOT USED */
 typedef struct {
-  unsigned char RAM[RAM_SIZE];                       /* RAM size 0x800, mirrored 3 times */
-  unsigned char ppu_registers[PPU_REGISTERS_SIZE];   /* actual size 0x8, repeats
-                                                      every 8 bytes */
+  unsigned char RAM[RAM_SIZE]; /* RAM size 0x800, mirrored 3 times */
+  unsigned char ppu_registers[PPU_REGISTERS_SIZE]; /* actual size 0x8, repeats
+                                                    every 8 bytes */
   unsigned char apu_registers[APU_REGISTERS_SIZE];
   unsigned char test_registers[TEST_REGISTERS_SIZE]; /* for when the CPU is in
                                                         test mode */
-  unsigned char rom[ROM_MEMORY_SIZE];                /* ROM space and mapper registers */
+  unsigned char rom[ROM_MEMORY_SIZE]; /* ROM space and mapper registers */
 } memory_map;
 
 typedef struct _processor_registers {
@@ -70,20 +54,37 @@ typedef struct _processor_registers {
   uint8_t stack_pointer[STACK_SIZE];
   uint8_t _sp;               /* index where to place things in the stack */
   uint8_t x, y, accumulator; /* x, y and accumulator registers */
-  uint8_t status;            /** NVsB DIZC, @see FLAGS */
+
+  union {
+    uint8_t status; /** NVsB DIZC, @see FLAGS */
+    struct {
+      uint8_t n : 1;
+      uint8_t v : 1;
+      uint8_t : 2;
+      uint8_t b : 1;
+      uint8_t d : 1;
+      uint8_t i : 1;
+      uint8_t z : 1;
+      uint8_t c : 1;
+    } _status;
+  };
 } registers_t;
 
 /* maybe use this for nice bundling dunno? would reduce globals which is nice
  * (clock_ticks) currently not in use*/
 typedef struct {
-  uint8_t memory[TOTAL_MEMORY_SIZE];
+  uint8_t memory[TOTAL_MEMORY_SIZE + 1];
   registers_t registers;
   unsigned long long clock_ticks;
 } processor_t;
 
 extern void interpret_opcode(void);
 
-extern void initialize_cpu(const unsigned char *data, size_t size);
+/**
+   @brief initializes the cpu, sets all of the memory addresses to 0xff
+   @param cart the cartridge 
+*/
+extern void initialize_cpu(cartridge_t *cart);
 extern bool initialize_cpu_filename(char *path);
 extern registers_t dump_registers(void);
 

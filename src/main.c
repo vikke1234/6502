@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 
   uint8_t *data = (uint8_t *)calloc(sizeof(char), s.st_size);
   fread(data, 1, s.st_size, file);
-  initialize_cpu(data, s.st_size, NULL, NULL);
+  initialize_cpu(data, s.st_size);
   for (long i = 0; i < s.st_size - 0x600; i++) {
     interpret_opcode();
   }

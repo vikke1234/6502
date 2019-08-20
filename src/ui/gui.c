@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  if (initialize_cpu_filename(argv[1], 0xc000) == false) {
+  if (initialize_cpu_filename(argv[1]) == false) {
     fprintf(stderr,
             "Error: could not initialize cpu, file could no be accessed");
     return 1;
