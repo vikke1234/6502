@@ -52,7 +52,6 @@ typedef struct {
 
 typedef struct _processor_registers {
   uint16_t pc;
-  uint8_t stack_pointer[STACK_SIZE];
   uint8_t _sp;               /* index where to place things in the stack */
   uint8_t x, y, accumulator; /* x, y and accumulator registers */
 

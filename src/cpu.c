@@ -46,10 +46,6 @@ static void ADC_indirectx(void);
 static void ADC_indirecty(void);
 static void ADC_zero(void);
 static void ADC_zerox(void);
-static void ALR(void);
-static void ARR(void);
-static void XAA(void);
-static void ANC(void);
 static void AND_absolute(void);
 static void AND_absolutex(void);
 static void AND_absolutey(void);
@@ -65,19 +61,6 @@ static void ASL_accumulator(void);
 static void ASL_help(uint8_t *address);
 static void ASL_zero(void);
 static void ASL_zerox(void);
-static void ASO_absolute(void);
-static void ASO_absolutex(void);
-static void ASO_absolutey(void);
-static void ASO_indirectx(void);
-static void ASO_indirecty(void);
-static void ASO_zero(void);
-static void ASO_zerox(void);
-static void AXA_absolutey(void);
-static void AXA_indirecty(void);
-static void AXS_absolute(void);
-static void AXS_indirectx(void);
-static void AXS_zero(void);
-static void AXS_zeroy(void);
 static void BCC(void);
 static void BCS(void);
 static void BEQ(void);
@@ -111,14 +94,6 @@ static void CPY_absolute(void);
 static void CPY_help(unsigned char value);
 static void CPY_im(void);
 static void CPY_zero(void);
-static void DCM_absolute(void);
-static void DCM_absolutex(void);
-static void DCM_absolutey(void);
-static void DCM_help(uint8_t *address);
-static void DCM_indirectx(void);
-static void DCM_indirecty(void);
-static void DCM_zero(void);
-static void DCM_zerox(void);
 static void DEC_absolute(void);
 static void DEC_absolutex(void);
 static void DEC_help(uint16_t location);
@@ -135,32 +110,16 @@ static void EOR_indirectx(void);
 static void EOR_indirecty(void);
 static void EOR_zero(void);
 static void EOR_zerox(void);
-static void HLT(void);
 static void INC_absolute(void);
 static void INC_absolutex(void);
 static void INC_help(uint16_t location);
 static void INC_zero(void);
 static void INC_zerox(void);
-static void INS_absolute(void);
-static void INS_absolutex(void);
-static void INS_absolutey(void);
-static void INS_help(uint8_t *address);
-static void INS_indirectx(void);
-static void INS_indirecty(void);
-static void INS_zero(void);
-static void INS_zerox(void);
 static void INX(void);
 static void INY(void);
 static void JMP_absolute(void);
 static void JMP_indirect(void);
 static void JSR(void);
-static void LAS(void);
-static void LAX_absolute(void);
-static void LAX_absolutey(void);
-static void LAX_indirectx(void);
-static void LAX_indirecty(void);
-static void LAX_zero(void);
-static void LAX_zeroy(void);
 static void LDA_absolute(void);
 static void LDA_absolutex(void);
 static void LDA_absolutey(void);
@@ -182,13 +141,6 @@ static void LDY_help(uint8_t value);
 static void LDY_im(void);
 static void LDY_zero(void);
 static void LDY_zerox(void);
-static void LSE_absolute(void);
-static void LSE_absolutex(void);
-static void LSE_absolutey(void);
-static void LSE_indirectx(void);
-static void LSE_indirecty(void);
-static void LSE_zero(void);
-static void LSE_zerox(void);
 static void LSR_absolute(void);
 static void LSR_absolutex(void);
 static void LSR_accumulator(void);
@@ -209,19 +161,10 @@ static void ORA_indirectx(void);
 static void ORA_indirecty(void);
 static void ORA_zero(void);
 static void ORA_zerox(void);
-static void OAL(void);
-static void SAX(void);
 static void PHA(void);
 static void PHP(void);
 static void PLA(void);
 static void PLP(void);
-static void RLA_absolute(void);
-static void RLA_absolutex(void);
-static void RLA_absolutey(void);
-static void RLA_indirectx(void);
-static void RLA_indirecty(void);
-static void RLA_zero(void);
-static void RLA_zerox(void);
 static void ROL_absolute(void);
 static void ROL_absolutex(void);
 static void ROL_accumulator(void);
@@ -234,16 +177,8 @@ static void ROR_accumulator(void);
 static void ROR_help(uint8_t *location);
 static void ROR_zero(void);
 static void ROR_zerox(void);
-static void RRA_absolute(void);
-static void RRA_absolutex(void);
-static void RRA_absolutey(void);
-static void RRA_indirectx(void);
-static void RRA_indirecty(void);
-static void RRA_zero(void);
-static void RRA_zerox(void);
 static void RTI(void);
 static void RTS(void);
-static void SAY(void);
 static void SBC_absolute(void);
 static void SBC_absolutex(void);
 static void SBC_absolutey(void);
@@ -269,15 +204,84 @@ static void STX_zeroy(void);
 static void STY_absolute(void);
 static void STY_zero(void);
 static void STY_zerox(void);
-static void TAS(void);
 static void TAX(void);
 static void TAY(void);
 static void TSX(void);
 static void TXA(void);
 static void TXS(void);
 static void TYA(void);
+
+#ifdef UNOFFICIAL_OPCODES
+
+static void ALR(void);
+static void ARR(void);
+static void XAA(void);
+static void ANC(void);
+static void ASO_absolute(void);
+static void ASO_absolutex(void);
+static void ASO_absolutey(void);
+static void ASO_indirectx(void);
+static void ASO_indirecty(void);
+static void ASO_zero(void);
+static void ASO_zerox(void);
+static void AXA_absolutey(void);
+static void AXA_indirecty(void);
+static void AXS_absolute(void);
+static void AXS_indirectx(void);
+static void AXS_zero(void);
+static void AXS_zeroy(void);
+static void DCM_absolute(void);
+static void DCM_absolutex(void);
+static void DCM_absolutey(void);
+static void DCM_help(uint8_t *address);
+static void DCM_indirectx(void);
+static void DCM_indirecty(void);
+static void DCM_zero(void);
+static void DCM_zerox(void);
+static void HLT(void);
+static void INS_absolute(void);
+static void INS_absolutex(void);
+static void INS_absolutey(void);
+static void INS_help(uint8_t *address);
+static void INS_indirectx(void);
+static void INS_indirecty(void);
+static void INS_zero(void);
+static void INS_zerox(void);
+static void LAS(void);
+static void LAX_absolute(void);
+static void LAX_absolutey(void);
+static void LAX_indirectx(void);
+static void LAX_indirecty(void);
+static void LAX_zero(void);
+static void LAX_zeroy(void);
+static void LSE_absolute(void);
+static void LSE_absolutex(void);
+static void LSE_absolutey(void);
+static void LSE_indirectx(void);
+static void LSE_indirecty(void);
+static void LSE_zero(void);
+static void LSE_zerox(void);
+static void OAL(void);
+static void SAX(void);
+static void RLA_absolute(void);
+static void RLA_absolutex(void);
+static void RLA_absolutey(void);
+static void RLA_indirectx(void);
+static void RLA_indirecty(void);
+static void RLA_zero(void);
+static void RLA_zerox(void);
+static void RRA_absolute(void);
+static void RRA_absolutex(void);
+static void RRA_absolutey(void);
+static void RRA_indirectx(void);
+static void RRA_indirecty(void);
+static void RRA_zero(void);
+static void RRA_zerox(void);
+static void SAY(void);
+static void TAS(void);
 static void XAS(void);
 
+#endif
 /**
  * @brief does comparison for the different CMP instructions
  */
@@ -309,20 +313,7 @@ static inline void push_to_stack(unsigned char value);
 static inline void write_byte(uint8_t value, uint16_t location);
 
 /**
- * @brief sets the flag to the value of b
- * @param flag
- * @param b what the flag should be
- */
-static inline void set_flag(flags_t flag, bool b);
-
-/**
- * @brief gets a given flag, 1 or 0
- * @param flag
- */
-static inline uint8_t get_flag(flags_t flag);
-
-/**
- * @brief reads 2 little endian bytes and combines them into
+ * @brief reads 2 bytes (little endian) and combines them into
  a 16bit unsigned
  * assumes that thereemacs's atleast 2 bytes to read, note increment PC by 2
  */
@@ -384,14 +375,6 @@ extern bool initialize_cpu_filename(char *path) {
 
   atexit(&close_log);
   init_log();
-  processor.registers._sp = 0;
-  processor.registers.accumulator = 0;
-  processor.registers.x = 0;
-  processor.registers.y = 0;
-  processor.registers.pc = 0x400;
-  processor.registers.status = 0;
-
-  memset(&processor.memory, 0xff, 0x07ff);
 
   FILE *fp = fopen(path, "rb");
   fread(processor.memory, 1, buf.st_size, fp);
@@ -403,9 +386,14 @@ extern bool initialize_cpu_filename(char *path) {
    @brief for detection of infinite loops, currently set to 5
 */
 static const int max_count = 5;
-int count = 0;
-int prev_pc = 0;
+static int count = 0;
+static int prev_pc = 0;
 
+/**
+   @brief a dirty hack
+*/
+static uint8_t current_opcode = 0;
+static uint16_t current_pc = 0;
 /* parser, pass data to initialize cpu and this does the rest */
 extern void interpret_opcode(void) {
   /* there's a lot of boilerplate code, MAYBE it can be reduced with some macro
@@ -430,9 +418,6 @@ extern void interpret_opcode(void) {
       [0x21] = &AND_indirectx,
       [0x31] = &AND_indirecty,
 
-      [0x6b] = &ARR,
-      [0x4b] = &ALR,
-      [0x8b] = &XAA,
       [0x0a] = &ASL_accumulator,
       [0x06] = &ASL_zero,
       [0x16] = &ASL_zerox,
@@ -583,14 +568,50 @@ extern void interpret_opcode(void) {
       [0x94] = &STY_zerox,
       [0x8c] = &STY_absolute,
 
-      [0xcb] = &SAX,
-      [0xab] = &OAL,
       [0xaa] = &TAX,
       [0xa8] = &TAY,
       [0xba] = &TSX,
       [0x8a] = &TXA,
       [0x9a] = &TXS,
       [0x98] = &TYA,
+
+      [0xea] = &NOP_im,
+      [0x1a] = &NOP_im,
+      [0x3a] = &NOP_im,
+      [0x5a] = &NOP_im,
+      [0x7a] = &NOP_im,
+      [0xda] = &NOP_im,
+      [0xfa] = &NOP_im,
+
+      [0x80] = &NOP_im,
+      [0x82] = &NOP_im,
+      [0xc2] = &NOP_im,
+      [0xe2] = &NOP_im,
+      [0x04] = &NOP_zero,
+      [0x14] = &NOP_zerox,
+      [0x34] = &NOP_zerox,
+      [0x44] = &NOP_zero,
+      [0x54] = &NOP_zerox,
+      [0x64] = &NOP_zero,
+      [0x74] = &NOP_zerox,
+      [0xd4] = &NOP_zerox,
+      [0xf4] = &NOP_zerox,
+      [0x0c] = &NOP_absolute,
+      [0x1c] = &NOP_absolutex,
+      [0x3c] = &NOP_absolutex,
+      [0x5c] = &NOP_absolutex,
+      [0x7c] = &NOP_absolutex,
+      [0x89] = &NOP_absolutex,
+      [0xdc] = &NOP_absolutex,
+      [0xfc] = &NOP_absolutex,
+
+#ifdef UNOFFICIAL_OPCODES
+      [0x6b] = &ARR,
+      [0x4b] = &ALR,
+      [0x8b] = &XAA,
+
+      [0x9f] = &AXA_absolutey,
+      [0x93] = &AXA_indirecty,
 
       [0x0f] = &ASO_absolute,
       [0x1f] = &ASO_absolutex,
@@ -600,7 +621,26 @@ extern void interpret_opcode(void) {
       [0x03] = &ASO_indirectx,
       [0x13] = &ASO_indirecty,
 
-      [0x2f] = &RLA_absolute,
+      [0xcb] = &SAX,
+      [0xab] = &OAL,
+
+      [0x02] = &HLT,
+      [0x12] = &HLT,
+      [0x22] = &HLT,
+      [0x32] = &HLT,
+      [0x42] = &HLT,
+      [0x52] = &HLT,
+      [0x62] = &HLT,
+      [0x72] = &HLT,
+      [0x92] = &HLT,
+      [0xb2] = &HLT,
+      [0xd2] = &HLT,
+      [0xf2] = &HLT,
+      [0x2b] = &ANC,
+      [0x0b] = &ANC,
+      [0xbb] = &LAS,
+
+                   [0x2f] = &RLA_absolute,
       [0x3f] = &RLA_absolutex,
       [0x3b] = &RLA_absolutey,
       [0x27] = &RLA_zero,
@@ -655,55 +695,9 @@ extern void interpret_opcode(void) {
       [0x9b] = &TAS,
       [0x9c] = &SAY,
       [0x9e] = &XAS,
-      [0x9f] = &AXA_absolutey,
-      [0x93] = &AXA_indirecty,
-
-      [0xea] = &NOP_im,
-      [0x1a] = &NOP_im,
-      [0x3a] = &NOP_im,
-      [0x5a] = &NOP_im,
-      [0x7a] = &NOP_im,
-      [0xda] = &NOP_im,
-      [0xfa] = &NOP_im,
-
-      [0x80] = &NOP_im,
-      [0x82] = &NOP_im,
-      [0xc2] = &NOP_im,
-      [0xe2] = &NOP_im,
-      [0x04] = &NOP_zero,
-      [0x14] = &NOP_zerox,
-      [0x34] = &NOP_zerox,
-      [0x44] = &NOP_zero,
-      [0x54] = &NOP_zerox,
-      [0x64] = &NOP_zero,
-      [0x74] = &NOP_zerox,
-      [0xd4] = &NOP_zerox,
-      [0xf4] = &NOP_zerox,
-      [0x0c] = &NOP_absolute,
-      [0x1c] = &NOP_absolutex,
-      [0x3c] = &NOP_absolutex,
-      [0x5c] = &NOP_absolutex,
-      [0x7c] = &NOP_absolutex,
-      [0x89] = &NOP_absolutex,
-      [0xdc] = &NOP_absolutex,
-      [0xfc] = &NOP_absolutex,
-
-      [0x02] = &HLT,
-      [0x12] = &HLT,
-      [0x22] = &HLT,
-      [0x32] = &HLT,
-      [0x42] = &HLT,
-      [0x52] = &HLT,
-      [0x62] = &HLT,
-      [0x72] = &HLT,
-      [0x92] = &HLT,
-      [0xb2] = &HLT,
-      [0xd2] = &HLT,
-      [0xf2] = &HLT,
-      [0x2b] = &ANC,
-      [0x0b] = &ANC,
-      [0xbb] = &LAS};
-
+#endif
+  };
+  log_cpu(processor);
   unsigned char opcode = read_byte();
 
   if (processor.registers.pc == prev_pc) {
@@ -716,6 +710,8 @@ extern void interpret_opcode(void) {
   prev_pc = processor.registers.pc;
 
   if (instructions[opcode]) {
+    current_opcode = opcode;
+    current_pc = processor.registers.pc;
     instructions[opcode]();
   } else {
     printf("\033[1;31m invalid opcode: %x\033[0m\n", opcode);
@@ -723,9 +719,13 @@ extern void interpret_opcode(void) {
   }
 }
 
+static inline void copy_to_stack(unsigned char value) {
+  processor.memory[STACK_START + processor.registers._sp] = value;
+}
+
 static inline void push_to_stack(unsigned char value) {
   if (processor.registers._sp - 1 < processor.registers._sp) {
-    processor.registers.stack_pointer[processor.registers._sp--] = value;
+    processor.memory[STACK_START + (processor.registers._sp--)] = value;
   } else {
     fprintf(stderr, "Stack Overflow exception, exitting");
     exit(STACK_OVERFLOW);
@@ -734,7 +734,7 @@ static inline void push_to_stack(unsigned char value) {
 
 static inline unsigned char pop_from_stack(void) {
   if (processor.registers._sp + 1 > processor.registers._sp) {
-    return processor.registers.stack_pointer[++processor.registers._sp];
+    return processor.memory[STACK_START + (++processor.registers._sp)];
   } else {
     fprintf(stderr, "Stack Underflow exception, exitting");
     exit(STACK_UNDERFLOW);
@@ -742,7 +742,7 @@ static inline unsigned char pop_from_stack(void) {
 }
 
 static inline unsigned char peek_from_stack(void) {
-  return processor.registers.stack_pointer[processor.registers._sp - 1];
+  return processor.memory[STACK_START + processor.registers._sp - 1];
 }
 
 static inline uint8_t *indexed_indirect(uint16_t address) {
@@ -763,19 +763,6 @@ static inline __attribute__((__always_inline__)) uint8_t *
 dereference_address(uint16_t address) {
   return &processor.memory[address]; /* always in range due to address being an
                               2 bytes long */
-}
-
-static inline void set_flag(flags_t flag, bool b) {
-  if (get_flag(flag) != b) {
-    processor.registers.status ^= flag;
-  }
-}
-
-static inline uint8_t get_flag(flags_t flag) {
-  /* !! to turn it into a 1 or 0 to not require shifting and
-   * looking up the power of two it is, also this is faster than doing
-   * status &= ~flag (have to check again TODO)*/
-  return !!(processor.registers.status & flag);
 }
 
 static inline uint16_t read_word() {
@@ -809,24 +796,24 @@ extern registers_t dump_registers(void) { return processor.registers; }
 
 static inline void zero_check(uint8_t value) {
   if (!value) {
-    set_flag(ZERO, true);
+    processor.registers._status.z = true;
   } else {
-    set_flag(ZERO, false);
+    processor.registers._status.z = false;
   }
 }
 static inline void negative_check(uint8_t value) {
   if (value & 0x80) {
-    set_flag(NEGATIVE, true);
+    processor.registers._status.n = true;
   } else {
-    set_flag(NEGATIVE, false);
+    processor.registers._status.n = false;
   }
 }
 static inline void overflow_check(uint16_t value, uint16_t result) {
   /* algo to check if there's been an overflow, google for more info */
   if ((result ^ processor.registers.accumulator) & (result ^ value) & 0x80) {
-    set_flag(OVERFLOW, true);
+    processor.registers._status.v = true;
   } else {
-    set_flag(OVERFLOW, false);
+    processor.registers._status.v = false;
   }
 }
 
@@ -838,14 +825,15 @@ static inline unsigned long long page_check(uint16_t address, uint8_t reg) {
 }
 static inline void carry_check(uint16_t value) {
   if (value & 0xff00) {
-    set_flag(CARRY, true);
+    processor.registers._status.c = true;
   } else {
-    set_flag(CARRY, false);
+    processor.registers._status.c = false;
   }
 }
 
 static void ADC_help(uint16_t value) {
-  uint8_t result = processor.registers.accumulator + value + get_flag(CARRY);
+  uint8_t result =
+      processor.registers.accumulator + value + processor.registers._status.c;
   overflow_check(value, result);
   carry_check(result);
   zero_check(result);
@@ -857,42 +845,36 @@ static void ADC_im(void) {
   uint8_t value = read_byte();
   processor.clock_ticks += 2;
   ADC_help(value);
-  log_cpu(processor.registers);
 }
 
 static void ADC_zero(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 3;
   ADC_help(processor.memory[location]);
-  log_cpu(processor.registers);
 }
 
 static void ADC_zerox(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 4;
   ADC_help(processor.memory[location + processor.registers.x]);
-  log_cpu(processor.registers);
 }
 
 static void ADC_absolute(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 4;
   ADC_help(processor.memory[location]);
-  log_cpu(processor.registers);
 }
 
 static void ADC_absolutex(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 3 + page_check(location, processor.registers.x);
   ADC_help(processor.memory[location + processor.registers.x]);
-  log_cpu(processor.registers);
 }
 
 static void ADC_absolutey(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 3 + page_check(location, processor.registers.y);
   ADC_help(processor.memory[location + processor.registers.y]);
-  log_cpu(processor.registers);
 }
 
 static void ADC_indirectx(void) {
@@ -900,7 +882,6 @@ static void ADC_indirectx(void) {
   uint16_t value = read_word_at(location + processor.registers.x);
   processor.clock_ticks += 6;
   ADC_help(value);
-  log_cpu(processor.registers);
 }
 
 static void ADC_indirecty(void) {
@@ -908,7 +889,6 @@ static void ADC_indirecty(void) {
   indirect_indexed(address);
   processor.clock_ticks += 5 + page_check(location, processor.registers.y);
   ADC_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void AND_help(uint8_t value) {
@@ -918,26 +898,26 @@ static void AND_help(uint8_t value) {
 }
 static void AND_im(void) {
   processor.clock_ticks += 2;
-  AND_help(read_byte());
-  log_cpu(processor.registers);
+  uint8_t value = read_byte();
+  AND_help(value);
 }
 
 static void AND_zero(void) {
   processor.clock_ticks += 3;
-  AND_help(processor.memory[read_byte()]);
-  log_cpu(processor.registers);
+  uint8_t value = processor.memory[read_byte()];
+  AND_help(value);
 }
 
 static void AND_zerox(void) {
   processor.clock_ticks += 4;
-  AND_help(processor.memory[read_byte() + processor.registers.x]);
-  log_cpu(processor.registers);
+  uint8_t location = read_byte();
+  AND_help(processor.memory[location + processor.registers.x]);
 }
 
 static void AND_absolute(void) {
   processor.clock_ticks += 4;
-  AND_help(processor.memory[read_word()]);
-  log_cpu(processor.registers);
+  uint16_t location = read_word();
+  AND_help(processor.memory[location]);
 }
 
 static void AND_absolutex(void) {
@@ -945,14 +925,12 @@ static void AND_absolutex(void) {
   processor.clock_ticks += 4 + page_check(address, processor.registers.x);
 
   AND_help(processor.memory[address + processor.registers.x]);
-  log_cpu(processor.registers);
 }
 
 static void AND_absolutey(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4 + page_check(address, processor.registers.x);
   AND_help(processor.memory[address + processor.registers.y]);
-  log_cpu(processor.registers);
 }
 
 static void AND_indirectx(void) {
@@ -960,7 +938,6 @@ static void AND_indirectx(void) {
   uint8_t *value = indexed_indirect(address);
   processor.clock_ticks += 6;
   AND_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void AND_indirecty(void) {
@@ -968,7 +945,6 @@ static void AND_indirecty(void) {
   indirect_indexed(address);
   processor.clock_ticks += 5 + page_check(location, processor.registers.y);
   AND_help(*value);
-  log_cpu(processor.registers);
 }
 
 void ASL_help(uint8_t *address) {
@@ -976,70 +952,59 @@ void ASL_help(uint8_t *address) {
   zero_check(*address);
   carry_check(*address);
   negative_check(*address);
-  log_cpu(processor.registers);
 }
 
 static void ASL_accumulator(void) {
   processor.clock_ticks += 2;
   ASL_help(&processor.registers.accumulator);
-  log_cpu(processor.registers);
 }
 
 static void ASL_zero(void) {
   processor.clock_ticks += 5;
-  ASL_help(&processor.memory[read_byte()]);
-  log_cpu(processor.registers);
+  uint8_t location = read_byte();
+  ASL_help(&processor.memory[location]);
 }
 
 static void ASL_zerox(void) {
   processor.clock_ticks += 6;
-  ASL_help(&processor.memory[read_byte() + processor.registers.x]);
-  log_cpu(processor.registers);
+  uint8_t location = read_byte();
+  ASL_help(&processor.memory[location + processor.registers.x]);
 }
 
 static void ASL_absolute(void) {
   processor.clock_ticks += 6;
-  ASL_help(&processor.memory[read_word()]);
-  log_cpu(processor.registers);
+  uint16_t location = read_word();
+  ASL_help(&processor.memory[location]);
 }
 
 static void ASL_absolutex(void) {
   processor.clock_ticks += 7;
-  ASL_help(&processor.memory[read_word() + processor.registers.x]);
-  log_cpu(processor.registers);
+  uint16_t location = read_word();
+  ASL_help(&processor.memory[location + processor.registers.x]);
 }
 
-static void branch(flags_t flag, bool b) {
+static void branch(bool flag, bool b) {
   int8_t offset = read_byte();
   processor.clock_ticks += 2;
-  if (get_flag(flag) == b) {
+  if (flag == b) {
     processor.clock_ticks += 1 + page_check(processor.registers.pc, offset);
     processor.registers.pc += offset;
   }
 }
-static void BCC(void) {
-  branch(CARRY, false);
-  log_cpu(processor.registers);
-}
+static void BCC(void) { branch(processor.registers._status.c, false); }
 
-static void BCS(void) {
-  branch(CARRY, true);
-  log_cpu(processor.registers);
-}
+static void BCS(void) { branch(processor.registers._status.c, true); }
 
-static void BEQ(void) {
-  branch(ZERO, true);
-  log_cpu(processor.registers);
-}
+static void BEQ(void) { branch(processor.registers._status.z, true); }
 
 void BIT_help(uint16_t bit_test) {
   if (bit_test == 0) {
-    set_flag(ZERO, true);
-    set_flag(OVERFLOW, false);
-    set_flag(NEGATIVE, false);
+    processor.registers._status.z = true;
+    processor.registers._status.v = false;
+    processor.registers._status.n = false;
   } else {
-    set_flag(OVERFLOW, !!(bit_test & OVERFLOW));
-    set_flag(NEGATIVE, !!(bit_test & NEGATIVE));
+    processor.registers._status.v = !!(bit_test & OVERFLOW);
+    processor.registers._status.n = !!(bit_test & NEGATIVE);
   }
 }
 
@@ -1049,7 +1014,6 @@ static void BIT_zero(void) {
       processor.registers.accumulator & processor.memory[location];
   processor.clock_ticks += 3;
   BIT_help(bit_test);
-  log_cpu(processor.registers);
 }
 
 static void BIT_absolute(void) {
@@ -1058,23 +1022,13 @@ static void BIT_absolute(void) {
       processor.registers.accumulator & processor.memory[location];
   processor.clock_ticks += 4;
   BIT_help(bit_test);
-  log_cpu(processor.registers);
 }
 
-static void BMI(void) {
-  branch(NEGATIVE, true);
-  log_cpu(processor.registers);
-}
+static void BMI(void) { branch(processor.registers._status.n, true); }
 
-static void BNE(void) {
-  branch(ZERO, false);
-  log_cpu(processor.registers);
-}
+static void BNE(void) { branch(processor.registers._status.z, false); }
 
-static void BPL(void) {
-  branch(NEGATIVE, false);
-  log_cpu(processor.registers);
-}
+static void BPL(void) { branch(processor.registers._status.n, false); }
 
 /* TODO */
 static void BRK(void) {
@@ -1083,58 +1037,40 @@ static void BRK(void) {
   push_to_stack((processor.registers.pc & 0xff00) >> 8);
   push_to_stack(processor.registers.status);
 
-  set_flag(BREAK, true);
+  processor.registers._status.b = true;
   processor.registers.pc = read_word_at(0xfffe);
   processor.clock_ticks += 7;
-
-  log_cpu(processor.registers);
 }
 
-static void BVC(void) {
-  branch(OVERFLOW, false);
-  log_cpu(processor.registers);
-}
+static void BVC(void) { branch(processor.registers._status.v, false); }
 
-static void BVS(void) {
-  branch(OVERFLOW, true);
-  log_cpu(processor.registers);
-}
+static void BVS(void) { branch(processor.registers._status.v, true); }
 
 static void CLC(void) {
   processor.clock_ticks += 2;
-  set_flag(CARRY, false);
-  log_cpu(processor.registers);
+  processor.registers._status.c = false;
 }
 
 static void CLD(void) {
   processor.clock_ticks += 2;
-  set_flag(DECIMAL, false);
-  log_cpu(processor.registers);
+  processor.registers._status.d = false;
 }
 
 static void CLI(void) {
   processor.clock_ticks += 2;
-  set_flag(INTERRUPT, false);
-  log_cpu(processor.registers);
+  processor.registers._status.i = false;
 }
 
 static void CLV(void) {
   processor.clock_ticks += 2;
-  set_flag(OVERFLOW, false);
-  log_cpu(processor.registers);
+  processor.registers._status.v = false;
 }
 
 /* this is for all compare instructions */
 static void cmp_help(unsigned char value, unsigned char reg) {
-  if (reg == value) {
-    set_flag(ZERO, true);
-  } else if (reg >= value) {
-    set_flag(CARRY, true);
-  }
-
-  if ((signed char)(reg - value) < 0) {
-    set_flag(NEGATIVE, true);
-  }
+  processor.registers._status.z = reg == value;
+  processor.registers._status.c = reg >= value;
+  processor.registers._status.n = (signed char)(reg - value) < 0;
 }
 
 /* this is simply to have less args for the caller as it's pointless to write
@@ -1147,7 +1083,6 @@ static void CMP_im(void) {
   unsigned char value = read_byte();
   processor.clock_ticks += 2;
   CMP_help(value);
-  log_cpu(processor.registers);
 }
 
 static void CMP_zero(void) {
@@ -1155,7 +1090,6 @@ static void CMP_zero(void) {
   uint8_t value = processor.memory[location];
   processor.clock_ticks += 3;
   CMP_help(value);
-  log_cpu(processor.registers);
 }
 
 static void CMP_zerox(void) {
@@ -1163,7 +1097,6 @@ static void CMP_zerox(void) {
   uint8_t value = processor.memory[location + processor.registers.x];
   processor.clock_ticks += 4;
   CMP_help(value);
-  log_cpu(processor.registers);
 }
 
 static void CMP_absolute(void) {
@@ -1171,7 +1104,6 @@ static void CMP_absolute(void) {
   uint8_t value = processor.memory[location];
   processor.clock_ticks += 4;
   CMP_help(value);
-  log_cpu(processor.registers);
 }
 
 static void CMP_absolutex(void) {
@@ -1179,7 +1111,6 @@ static void CMP_absolutex(void) {
   uint8_t value = processor.memory[location + processor.registers.x];
   processor.clock_ticks += 4 + page_check(location, processor.registers.x);
   CMP_help(value);
-  log_cpu(processor.registers);
 }
 
 static void CMP_absolutey(void) {
@@ -1187,7 +1118,6 @@ static void CMP_absolutey(void) {
   uint8_t value = read_byte_at(location + processor.registers.y);
   processor.clock_ticks += 4 + page_check(location, processor.registers.y);
   CMP_help(value);
-  log_cpu(processor.registers);
 }
 
 static void CMP_indirectx(void) {
@@ -1195,7 +1125,6 @@ static void CMP_indirectx(void) {
   uint8_t *value = indexed_indirect(address);
   processor.clock_ticks += 6;
   CMP_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void CMP_indirecty(void) {
@@ -1203,7 +1132,6 @@ static void CMP_indirecty(void) {
   indirect_indexed(address);
   processor.clock_ticks += 5 + page_check(location, processor.registers.y);
   CMP_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void CPX_help(unsigned char value) {
@@ -1214,7 +1142,6 @@ static void CPX_im(void) {
   uint8_t value = read_byte();
   processor.clock_ticks += 2;
   CPX_help(value);
-  log_cpu(processor.registers);
 }
 
 static void CPX_zero(void) {
@@ -1222,7 +1149,6 @@ static void CPX_zero(void) {
   uint8_t value = read_byte_at(location);
   processor.clock_ticks += 3;
   CPX_help(value);
-  log_cpu(processor.registers);
 }
 
 static void CPX_absolute(void) {
@@ -1230,7 +1156,6 @@ static void CPX_absolute(void) {
   uint8_t value = read_byte_at(location);
   processor.clock_ticks += 4;
   CPX_help(value);
-  log_cpu(processor.registers);
 }
 
 static void CPY_help(unsigned char value) {
@@ -1241,7 +1166,6 @@ static void CPY_im(void) {
   uint8_t value = read_byte();
   processor.clock_ticks += 2;
   CPY_help(value);
-  log_cpu(processor.registers);
 }
 
 static void CPY_zero(void) {
@@ -1249,7 +1173,6 @@ static void CPY_zero(void) {
   uint8_t value = read_byte_at(location);
   processor.clock_ticks += 3;
   CPY_help(value);
-  log_cpu(processor.registers);
 }
 
 static void CPY_absolute(void) {
@@ -1257,7 +1180,6 @@ static void CPY_absolute(void) {
   uint8_t value = read_byte_at(location);
   processor.clock_ticks += 4;
   CPY_help(value);
-  log_cpu(processor.registers);
 }
 
 static void DEC_help(uint16_t location) {
@@ -1270,28 +1192,24 @@ static void DEC_zero(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 5;
   DEC_help(location);
-  log_cpu(processor.registers);
 }
 
 static void DEC_zerox(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 6;
   DEC_help(location);
-  log_cpu(processor.registers);
 }
 
 static void DEC_absolute(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 6;
   DEC_help(location);
-  log_cpu(processor.registers);
 }
 
 static void DEC_absolutex(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 7;
   DEC_help(location + processor.registers.x);
-  log_cpu(processor.registers);
 }
 
 static void DEX(void) {
@@ -1299,7 +1217,6 @@ static void DEX(void) {
   zero_check(processor.registers.x);
   negative_check(processor.registers.x);
   processor.clock_ticks += 2;
-  log_cpu(processor.registers);
 }
 
 static void DEY(void) {
@@ -1307,7 +1224,6 @@ static void DEY(void) {
   zero_check(processor.registers.y);
   negative_check(processor.registers.y);
   processor.clock_ticks += 2;
-  log_cpu(processor.registers);
 }
 
 static void EOR_help(uint8_t value) {
@@ -1320,7 +1236,6 @@ static void EOR_im(void) {
   uint8_t value = read_byte();
   processor.clock_ticks += 2;
   EOR_help(value);
-  log_cpu(processor.registers);
 }
 
 static void EOR_zero(void) {
@@ -1328,7 +1243,6 @@ static void EOR_zero(void) {
   uint8_t value = read_byte_at(location);
   processor.clock_ticks += 3;
   EOR_help(value);
-  log_cpu(processor.registers);
 }
 
 static void EOR_zerox(void) {
@@ -1336,7 +1250,6 @@ static void EOR_zerox(void) {
   uint8_t value = read_byte_at(location);
   processor.clock_ticks += 4;
   EOR_help(value);
-  log_cpu(processor.registers);
 }
 
 static void EOR_absolute(void) {
@@ -1344,7 +1257,6 @@ static void EOR_absolute(void) {
   uint8_t value = read_byte_at(location);
   processor.clock_ticks += 4;
   EOR_help(value);
-  log_cpu(processor.registers);
 }
 
 static void EOR_absolutex(void) {
@@ -1352,7 +1264,6 @@ static void EOR_absolutex(void) {
   uint8_t value = read_byte_at(location + processor.registers.x);
   processor.clock_ticks += 4 + page_check(location, processor.registers.x);
   EOR_help(value);
-  log_cpu(processor.registers);
 }
 
 static void EOR_absolutey(void) {
@@ -1360,7 +1271,6 @@ static void EOR_absolutey(void) {
   uint8_t value = read_byte_at(location + processor.registers.y);
   processor.clock_ticks += 4 + page_check(location, processor.registers.y);
   EOR_help(value);
-  log_cpu(processor.registers);
 }
 
 static void EOR_indirectx(void) {
@@ -1368,7 +1278,6 @@ static void EOR_indirectx(void) {
   uint8_t *value = indexed_indirect(address);
   processor.clock_ticks += 6;
   EOR_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void EOR_indirecty(void) {
@@ -1376,7 +1285,6 @@ static void EOR_indirecty(void) {
   indirect_indexed(address);
   processor.clock_ticks += 5 + page_check(location, processor.registers.y);
   EOR_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void INC_help(uint16_t location) {
@@ -1389,28 +1297,24 @@ static void INC_zero(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 5;
   INC_help(location);
-  log_cpu(processor.registers);
 }
 
 static void INC_zerox(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 6;
   INC_help(location);
-  log_cpu(processor.registers);
 }
 
 static void INC_absolute(void) {
   uint8_t location = read_word();
   processor.clock_ticks += 6;
   INC_help(location);
-  log_cpu(processor.registers);
 }
 
 static void INC_absolutex(void) {
   uint8_t location = read_word();
   processor.clock_ticks += 7;
   INC_help(location);
-  log_cpu(processor.registers);
 }
 
 static void INX(void) {
@@ -1418,8 +1322,6 @@ static void INX(void) {
   processor.clock_ticks += 2;
   zero_check(processor.registers.x);
   negative_check(processor.registers.x);
-
-  log_cpu(processor.registers);
 }
 
 static void INY(void) {
@@ -1427,15 +1329,12 @@ static void INY(void) {
   processor.clock_ticks += 2;
   zero_check(processor.registers.y);
   negative_check(processor.registers.y);
-
-  log_cpu(processor.registers);
 }
 
 static void JMP_absolute(void) {
   processor.clock_ticks += 3;
   uint16_t location = read_word();
   processor.registers.pc = location;
-  log_cpu(processor.registers);
 }
 
 static void JMP_indirect(void) {
@@ -1443,16 +1342,14 @@ static void JMP_indirect(void) {
   uint16_t jmp_to = read_word_at(location);
   processor.clock_ticks += 5;
   processor.registers.pc = jmp_to;
-  log_cpu(processor.registers);
 }
 
 static void JSR(void) {
-  processor.registers.stack_pointer[processor.registers._sp] =
+  processor.memory[STACK_START + processor.registers._sp] =
       processor.registers.pc - 1;
-  processor.registers.pc = read_word();
+  uint16_t location = read_word();
+  processor.registers.pc = location;
   processor.clock_ticks += 6;
-
-  log_cpu(processor.registers);
 }
 
 void LDA_help(uint8_t value) {
@@ -1465,39 +1362,36 @@ static void LDA_im(void) {
   uint8_t value = read_byte();
   processor.clock_ticks += 2;
   LDA_help(value);
-  log_cpu(processor.registers);
 }
 
 static void LDA_zero(void) {
   processor.clock_ticks += 3;
-  LDA_help(processor.memory[read_byte()]);
-  log_cpu(processor.registers);
+  uint16_t location = read_byte();
+  LDA_help(processor.memory[location]);
 }
 
 static void LDA_zerox(void) {
   processor.clock_ticks += 4;
-  LDA_help(processor.memory[read_byte() + processor.registers.x]);
-  log_cpu(processor.registers);
+  uint8_t location = read_byte();
+  LDA_help(processor.memory[location + processor.registers.x]);
 }
 
 static void LDA_absolute(void) {
   processor.clock_ticks += 4;
-  LDA_help(processor.memory[read_word()]);
-  log_cpu(processor.registers);
+  uint16_t location = read_word();
+  LDA_help(processor.memory[location]);
 }
 
 static void LDA_absolutex(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4 + page_check(address, processor.registers.x);
   LDA_help(processor.memory[address + processor.registers.x]);
-  log_cpu(processor.registers);
 }
 
 static void LDA_absolutey(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4 + page_check(address, processor.registers.y);
   LDA_help(processor.memory[address + processor.registers.y]);
-  log_cpu(processor.registers);
 }
 
 static void LDA_indirectx(void) {
@@ -1505,7 +1399,6 @@ static void LDA_indirectx(void) {
   uint8_t *value = indexed_indirect(address);
   processor.clock_ticks += 6;
   LDA_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void LDA_indirecty(void) {
@@ -1513,46 +1406,39 @@ static void LDA_indirecty(void) {
   indirect_indexed(address);
   processor.clock_ticks += 5 + page_check(location, processor.registers.y);
   LDA_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void LDX_help(uint8_t value) {
   processor.registers.x = value;
   zero_check(processor.registers.x);
   negative_check(processor.registers.x);
-  log_cpu(processor.registers);
 }
 
 static void LDX_im(void) {
   uint8_t value = read_byte();
   processor.clock_ticks += 2;
   LDX_help(value);
-  log_cpu(processor.registers);
 }
 
 static void LDX_zero(void) {
   processor.clock_ticks += 3;
   LDX_help(processor.memory[read_byte()]);
-  log_cpu(processor.registers);
 }
 
 static void LDX_zeroy(void) {
   processor.clock_ticks += 4;
   LDX_help(processor.memory[read_byte() + processor.registers.y]);
-  log_cpu(processor.registers);
 }
 
 static void LDX_absolute(void) {
   processor.clock_ticks += 4;
   LDX_help(processor.memory[read_word()]);
-  log_cpu(processor.registers);
 }
 
 static void LDX_absolutey(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4 + page_check(address, processor.registers.y);
   LDX_help(processor.memory[address + processor.registers.y]);
-  log_cpu(processor.registers);
 }
 
 static void LDY_help(uint8_t value) {
@@ -1564,32 +1450,27 @@ static void LDY_help(uint8_t value) {
 static void LDY_im(void) {
   processor.clock_ticks += 2;
   LDY_help(read_byte());
-  log_cpu(processor.registers);
 }
 
 static void LDY_zero(void) {
   processor.clock_ticks += 3;
   LDY_help(processor.memory[read_byte()]);
-  log_cpu(processor.registers);
 }
 
 static void LDY_zerox(void) {
   processor.clock_ticks += 4;
   LDY_help(processor.memory[read_byte() + processor.registers.x]);
-  log_cpu(processor.registers);
 }
 
 static void LDY_absolute(void) {
   processor.clock_ticks += 4;
   LDY_help(processor.memory[read_word()]);
-  log_cpu(processor.registers);
 }
 
 static void LDY_absolutex(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4 + page_check(address, processor.registers.x);
   LDY_help(processor.memory[read_word() + processor.registers.x]);
-  log_cpu(processor.registers);
 }
 
 static void LSR_help(uint8_t *value) {
@@ -1608,58 +1489,40 @@ static void LSR_zero(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 5;
   LSR_help(dereference_address(location));
-  log_cpu(processor.registers);
 }
 
 static void LSR_zerox(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 6;
   LSR_help(dereference_address(location + processor.registers.x));
-  log_cpu(processor.registers);
 }
 
 static void LSR_absolute(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 6;
   LSR_help(dereference_address(location));
-  log_cpu(processor.registers);
 }
 
 static void LSR_absolutex(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 7;
   LSR_help(dereference_address(location + processor.registers.x));
-  log_cpu(processor.registers);
 }
 
-static void NOP_im(void) {
-  processor.clock_ticks += 2;
-  processor.registers.pc++;
-  log_cpu(processor.registers);
-}
+static void NOP_im(void) { processor.clock_ticks += 2; }
 
 static void NOP_absolute(void) {
   processor.clock_ticks += 4;
   processor.registers.pc += 2;
-  log_cpu(processor.registers);
 }
 
 static void NOP_absolutex(void) {
   uint8_t address = read_word();
   processor.clock_ticks += 4 + page_check(address, processor.registers.x);
-  log_cpu(processor.registers);
 }
-static void NOP_zero(void) {
-  processor.clock_ticks += 3;
-  processor.registers.pc++;
-  log_cpu(processor.registers);
-}
+static void NOP_zero(void) { processor.clock_ticks += 3; }
 
-static void NOP_zerox(void) {
-  processor.clock_ticks += 4;
-  processor.registers.pc++;
-  log_cpu(processor.registers);
-}
+static void NOP_zerox(void) { processor.clock_ticks += 4; }
 
 static void ORA_help(uint16_t value) {
   processor.registers.accumulator |= value;
@@ -1671,7 +1534,6 @@ static void ORA_im(void) {
   uint8_t value = read_byte();
   processor.clock_ticks += 2;
   ORA_help(value);
-  log_cpu(processor.registers);
 }
 
 static void ORA_zero(void) {
@@ -1679,7 +1541,6 @@ static void ORA_zero(void) {
   uint8_t value = read_byte_at(location);
   processor.clock_ticks += 3;
   ORA_help(value);
-  log_cpu(processor.registers);
 }
 
 static void ORA_zerox(void) {
@@ -1687,7 +1548,6 @@ static void ORA_zerox(void) {
   uint8_t value = read_byte_at(location);
   processor.clock_ticks += 4;
   ORA_help(value);
-  log_cpu(processor.registers);
 }
 
 static void ORA_absolute(void) {
@@ -1695,7 +1555,6 @@ static void ORA_absolute(void) {
   uint8_t value = read_byte_at(location);
   processor.clock_ticks += 4;
   ORA_help(value);
-  log_cpu(processor.registers);
 }
 
 static void ORA_absolutex(void) {
@@ -1703,7 +1562,6 @@ static void ORA_absolutex(void) {
   uint8_t value = read_byte_at(location + processor.registers.x);
   processor.clock_ticks += 4 + page_check(location, processor.registers.x);
   ORA_help(value);
-  log_cpu(processor.registers);
 }
 
 static void ORA_absolutey(void) {
@@ -1711,7 +1569,6 @@ static void ORA_absolutey(void) {
   uint8_t value = read_byte_at(location + processor.registers.y);
   processor.clock_ticks += 4 + page_check(location, processor.registers.y);
   ORA_help(value);
-  log_cpu(processor.registers);
 }
 
 static void ORA_indirectx(void) {
@@ -1719,7 +1576,6 @@ static void ORA_indirectx(void) {
   uint8_t *value = indexed_indirect(address);
   processor.clock_ticks += 6;
   ORA_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void ORA_indirecty(void) {
@@ -1727,31 +1583,26 @@ static void ORA_indirecty(void) {
   indirect_indexed(address);
   processor.clock_ticks += 5 + page_check(location, processor.registers.y);
   ORA_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void PHA(void) {
+  push_to_stack(processor.registers.accumulator);
   processor.clock_ticks += 3;
-  push_to_stack(read_byte());
-  log_cpu(processor.registers);
 }
 
 static void PHP(void) {
   processor.clock_ticks += 3;
   push_to_stack(processor.registers.status);
-  log_cpu(processor.registers);
 }
 
 static void PLA(void) {
   processor.clock_ticks += 4;
   processor.registers.accumulator = pop_from_stack();
-  log_cpu(processor.registers);
 }
 
 static void PLP(void) {
   processor.clock_ticks += 4;
   processor.registers.status = pop_from_stack();
-  log_cpu(processor.registers);
 }
 
 static void ROL_help(uint8_t *location) {
@@ -1764,35 +1615,30 @@ static void ROL_help(uint8_t *location) {
 static void ROL_accumulator(void) {
   processor.clock_ticks += 2;
   ROL_help(&processor.registers.accumulator);
-  log_cpu(processor.registers);
 }
 
 static void ROL_zero(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 5;
   ROL_help(dereference_address(location));
-  log_cpu(processor.registers);
 }
 
 static void ROL_zerox(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 6;
   ROL_help(dereference_address(location + processor.registers.x));
-  log_cpu(processor.registers);
 }
 
 static void ROL_absolute(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 6;
   ROL_help(dereference_address(location));
-  log_cpu(processor.registers);
 }
 
 static void ROL_absolutex(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 7;
   ROL_help(dereference_address(location + processor.registers.x));
-  log_cpu(processor.registers);
 }
 
 static void ROR_help(uint8_t *location) {
@@ -1807,53 +1653,47 @@ static void ROR_help(uint8_t *location) {
 static void ROR_accumulator(void) {
   processor.clock_ticks += 2;
   ROR_help(&processor.registers.accumulator);
-  log_cpu(processor.registers);
 }
 
 static void ROR_zero(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 5;
   ROR_help(dereference_address(location));
-  log_cpu(processor.registers);
 }
 
 static void ROR_zerox(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 6;
   ROR_help(dereference_address(location + processor.registers.x));
-  log_cpu(processor.registers);
 }
 
 static void ROR_absolute(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 6;
   ROR_help(dereference_address(location));
-  log_cpu(processor.registers);
 }
 
 static void ROR_absolutex(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 7;
   ROR_help(dereference_address(location + processor.registers.x));
-  log_cpu(processor.registers);
 }
 
 static void RTI(void) {
   processor.registers.status = pop_from_stack();
   processor.registers.pc++;
   processor.clock_ticks += 6;
-  log_cpu(processor.registers);
 }
 
 static void RTS(void) {
   processor.registers.pc = pop_from_stack();
   processor.registers.pc++;
   processor.clock_ticks += 6;
-  log_cpu(processor.registers);
 }
 
 static void SBC_help(uint8_t amt) {
-  uint8_t result = processor.registers.accumulator - amt - get_flag(CARRY);
+  uint8_t result =
+      processor.registers.accumulator - amt - processor.registers._status.c;
   overflow_check(amt, result);
   carry_check(result);
   zero_check(result);
@@ -1865,14 +1705,12 @@ static void SBC_im(void) {
   uint8_t value = read_byte();
   processor.clock_ticks += 2;
   SBC_help(value);
-  log_cpu(processor.registers);
 }
 
 static void SBC_zero(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 3;
   SBC_help(read_byte_at(location));
-  log_cpu(processor.registers);
 }
 
 static void SBC_zerox(void) {
@@ -1880,7 +1718,6 @@ static void SBC_zerox(void) {
   uint8_t value = read_byte_at(location);
   processor.clock_ticks += 4;
   SBC_help(value);
-  log_cpu(processor.registers);
 }
 
 static void SBC_absolute(void) {
@@ -1888,7 +1725,6 @@ static void SBC_absolute(void) {
   uint8_t value = read_byte_at(location);
   processor.clock_ticks += 4;
   SBC_help(value);
-  log_cpu(processor.registers);
 }
 
 static void SBC_absolutex(void) {
@@ -1896,7 +1732,6 @@ static void SBC_absolutex(void) {
   uint8_t value = read_byte_at(location + processor.registers.x);
   processor.clock_ticks += 4 + page_check(location, processor.registers.x);
   SBC_help(value);
-  log_cpu(processor.registers);
 }
 
 static void SBC_absolutey(void) {
@@ -1904,7 +1739,6 @@ static void SBC_absolutey(void) {
   uint8_t value = read_byte_at(location + processor.registers.y);
   processor.clock_ticks += 4 + page_check(location, processor.registers.y);
   SBC_help(value);
-  log_cpu(processor.registers);
 }
 
 static void SBC_indirectx(void) {
@@ -1912,7 +1746,6 @@ static void SBC_indirectx(void) {
   uint8_t *ptr = indexed_indirect(address);
   processor.clock_ticks += 6;
   SBC_help(*ptr);
-  log_cpu(processor.registers);
 }
 
 static void SBC_indirecty(void) {
@@ -1920,58 +1753,49 @@ static void SBC_indirecty(void) {
   indirect_indexed(address);
   processor.clock_ticks += 5 + page_check(location, processor.registers.y);
   SBC_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void SEC(void) {
   processor.clock_ticks += 2;
-  set_flag(CARRY, true);
-  log_cpu(processor.registers);
+  processor.registers._status.c = true;
 }
 static void SED(void) {
   processor.clock_ticks += 2;
-  set_flag(DECIMAL, true);
-  log_cpu(processor.registers);
+  processor.registers._status.d = true;
 }
 static void SEI(void) {
   processor.clock_ticks += 2;
-  set_flag(INTERRUPT, true);
-  log_cpu(processor.registers);
+  processor.registers._status.i = true;
 }
 
 static void STA_zero(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 3;
   write_byte(processor.registers.accumulator, location);
-  log_cpu(processor.registers);
 }
 
 static void STA_zerox(void) {
   uint8_t address = read_byte();
   processor.clock_ticks += 4;
   write_byte(processor.registers.accumulator, address + processor.registers.x);
-  log_cpu(processor.registers);
 }
 
 static void STA_absolute(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4;
   write_byte(processor.registers.accumulator, address);
-  log_cpu(processor.registers);
 }
 
 static void STA_absolutex(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4;
   write_byte(processor.registers.accumulator, address + processor.registers.x);
-  log_cpu(processor.registers);
 }
 
 static void STA_absolutey(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4;
   write_byte(processor.registers.accumulator, address + processor.registers.y);
-  log_cpu(processor.registers);
 }
 
 static void STA_indirectx(void) {
@@ -1979,7 +1803,6 @@ static void STA_indirectx(void) {
   uint8_t *ptr = indexed_indirect(address);
   processor.clock_ticks += 6;
   *ptr = processor.registers.accumulator;
-  log_cpu(processor.registers);
 }
 
 static void STA_indirecty(void) {
@@ -1987,85 +1810,79 @@ static void STA_indirecty(void) {
   indirect_indexed(address);
   processor.clock_ticks += 6;
   *value = processor.registers.accumulator;
-  log_cpu(processor.registers);
 }
 
 static void STX_zero(void) {
   processor.clock_ticks += 3;
-  write_byte(processor.registers.x, read_byte());
-  log_cpu(processor.registers);
+  uint8_t location = read_byte();
+  write_byte(processor.registers.x, location);
 }
 static void STX_zeroy(void) {
   processor.clock_ticks += 4;
-  write_byte(processor.registers.x, read_byte());
-  log_cpu(processor.registers);
+  uint8_t location = read_byte();
+  write_byte(processor.registers.x, location);
 }
 static void STX_absolute(void) {
   processor.clock_ticks += 4;
-  write_byte(processor.registers.x, read_word());
-  log_cpu(processor.registers);
+  uint16_t location = read_word();
+  write_byte(processor.registers.x, location);
 }
 
 static void STY_zero(void) {
+  uint8_t location = read_byte();
+  write_byte(processor.registers.y, location);
   processor.clock_ticks += 3;
-  write_byte(processor.registers.y, read_byte());
-  log_cpu(processor.registers);
 }
 static void STY_zerox(void) {
+  uint8_t location = read_byte();
+  write_byte(processor.registers.y, location + processor.registers.x);
   processor.clock_ticks += 4;
-  write_byte(processor.registers.y, read_byte() + processor.registers.x);
-  log_cpu(processor.registers);
 }
 static void STY_absolute(void) {
+  uint16_t location = read_word();
+  write_byte(processor.registers.y, location + processor.registers.x);
   processor.clock_ticks += 4;
-  write_byte(processor.registers.y, read_word() + processor.registers.x);
-  log_cpu(processor.registers);
 }
 
 static void TAX(void) {
-  processor.clock_ticks += 2;
   processor.registers.x = processor.registers.accumulator;
   zero_check(processor.registers.x);
   negative_check(processor.registers.x);
-  log_cpu(processor.registers);
+  processor.clock_ticks += 2;
 }
 
 static void TAY(void) {
-  processor.clock_ticks += 4;
   processor.registers.y = processor.registers.accumulator;
   zero_check(processor.registers.y);
   negative_check(processor.registers.y);
-  log_cpu(processor.registers);
+  processor.clock_ticks += 4;
 }
 static void TSX(void) {
-  processor.clock_ticks += 2;
-  processor.registers.x = peek_from_stack();
+  processor.registers.x = processor.registers._sp;
   zero_check(processor.registers.x);
   negative_check(processor.registers.x);
-  log_cpu(processor.registers);
+  processor.clock_ticks += 2;
 }
 
 static void TXA(void) {
-  processor.clock_ticks += 2;
-  processor.registers.accumulator = peek_from_stack();
+  processor.registers.accumulator = processor.registers.x;
   zero_check(processor.registers.accumulator);
   negative_check(processor.registers.accumulator);
-  log_cpu(processor.registers);
-}
-static void TXS(void) {
   processor.clock_ticks += 2;
-  push_to_stack(processor.registers.x);
+}
+
+static void TXS(void) {
+  copy_to_stack(processor.registers.x);
   zero_check(processor.registers.x);
   negative_check(processor.registers.x);
-  log_cpu(processor.registers);
+  processor.clock_ticks += 2;
 }
 
 static void TYA(void) {
-  processor.clock_ticks += 2;
   processor.registers.accumulator = processor.registers.y;
   zero_check(processor.registers.accumulator);
   negative_check(processor.registers.accumulator);
-  log_cpu(processor.registers);
+  processor.clock_ticks += 2;
 }
 
 /* UNDOCUMENTED OPCODES */
@@ -2073,11 +1890,8 @@ static void TYA(void) {
 
 /* add status flags for the following ones, might be unnecessary tbh, because of
  * the fact they're done in the helper functions */
-
-static void HLT(void) {
-  log_cpu(processor.registers);
-  exit(1);
-}
+#ifdef UNOFFICIAL_OPCODES
+static void HLT(void) { exit(1); }
 
 static void ASO_absolute(void) {
   uint16_t location = read_word();
@@ -2085,7 +1899,6 @@ static void ASO_absolute(void) {
   processor.clock_ticks += 6;
   ASL_help(value_ptr);
   ORA_help(*value_ptr);
-  log_cpu(processor.registers);
 }
 
 static void ASO_absolutex(void) {
@@ -2094,7 +1907,6 @@ static void ASO_absolutex(void) {
   processor.clock_ticks += 7;
   ASL_help(value_ptr);
   ORA_help(*value_ptr);
-  log_cpu(processor.registers);
 }
 
 static void ASO_absolutey(void) {
@@ -2103,7 +1915,6 @@ static void ASO_absolutey(void) {
   processor.clock_ticks += 7;
   ASL_help(value_ptr);
   ORA_help(*value_ptr);
-  log_cpu(processor.registers);
 }
 
 static void ASO_zero(void) {
@@ -2111,7 +1922,6 @@ static void ASO_zero(void) {
   uint8_t *value = dereference_address(location);
   ASL_help(value);
   ORA_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void ASO_zerox(void) {
@@ -2120,7 +1930,6 @@ static void ASO_zerox(void) {
   processor.clock_ticks += 5;
   ASL_help(value);
   ORA_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void ASO_indirectx(void) {
@@ -2129,7 +1938,6 @@ static void ASO_indirectx(void) {
   processor.clock_ticks += 8;
   ASL_help(dereferenced);
   ORA_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void ASO_indirecty(void) {
@@ -2138,7 +1946,6 @@ static void ASO_indirecty(void) {
   processor.clock_ticks += 8;
   ASL_help(value);
   ORA_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void RLA_absolute(void) {
@@ -2147,7 +1954,6 @@ static void RLA_absolute(void) {
   processor.clock_ticks += 6;
   ROL_help(dereferenced);
   AND_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void RLA_absolutex(void) {
@@ -2156,7 +1962,6 @@ static void RLA_absolutex(void) {
   processor.clock_ticks += 7;
   ROL_help(dereferenced);
   AND_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void RLA_absolutey(void) {
@@ -2165,7 +1970,6 @@ static void RLA_absolutey(void) {
   processor.clock_ticks += 7;
   ROL_help(dereferenced);
   AND_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void RLA_zero(void) {
@@ -2174,7 +1978,6 @@ static void RLA_zero(void) {
   processor.clock_ticks += 5;
   ROL_help(dereferenced);
   AND_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void RLA_zerox(void) {
@@ -2183,7 +1986,6 @@ static void RLA_zerox(void) {
   processor.clock_ticks += 6;
   ROL_help(dereferenced);
   AND_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void RLA_indirectx(void) {
@@ -2192,7 +1994,6 @@ static void RLA_indirectx(void) {
   processor.clock_ticks += 8;
   ROL_help(dereferenced);
   AND_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void RLA_indirecty(void) {
@@ -2201,7 +2002,6 @@ static void RLA_indirecty(void) {
   processor.clock_ticks += 8;
   ROL_help(value);
   AND_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void LSE_absolute(void) {
@@ -2210,7 +2010,6 @@ static void LSE_absolute(void) {
   processor.clock_ticks += 6;
   LSR_help(value_ptr);
   EOR_help(*value_ptr);
-  log_cpu(processor.registers);
 }
 
 static void LSE_absolutex(void) {
@@ -2219,7 +2018,6 @@ static void LSE_absolutex(void) {
   processor.clock_ticks += 7;
   LSR_help(dereferenced);
   EOR_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void LSE_absolutey(void) {
@@ -2228,7 +2026,6 @@ static void LSE_absolutey(void) {
   processor.clock_ticks += 7;
   LSR_help(dereferenced);
   EOR_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void LSE_zero(void) {
@@ -2237,7 +2034,6 @@ static void LSE_zero(void) {
   processor.clock_ticks += 5;
   LSR_help(dereferenced);
   EOR_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void LSE_zerox(void) {
@@ -2246,7 +2042,6 @@ static void LSE_zerox(void) {
   processor.clock_ticks += 6;
   LSR_help(dereferenced);
   EOR_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void LSE_indirectx(void) {
@@ -2255,7 +2050,6 @@ static void LSE_indirectx(void) {
   processor.clock_ticks += 8;
   LSR_help(dereferenced);
   EOR_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void LSE_indirecty(void) {
@@ -2264,7 +2058,6 @@ static void LSE_indirecty(void) {
   processor.clock_ticks += 8;
   LSR_help(value);
   EOR_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void RRA_absolute(void) {
@@ -2273,7 +2066,6 @@ static void RRA_absolute(void) {
   processor.clock_ticks += 6;
   ROR_help(dereferenced);
   ADC_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void RRA_absolutex(void) {
@@ -2282,7 +2074,6 @@ static void RRA_absolutex(void) {
   processor.clock_ticks += 7;
   ROR_help(dereferenced);
   ADC_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void RRA_absolutey(void) {
@@ -2291,7 +2082,6 @@ static void RRA_absolutey(void) {
   processor.clock_ticks += 7;
   ROR_help(dereferenced);
   ADC_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void RRA_zero(void) {
@@ -2300,7 +2090,6 @@ static void RRA_zero(void) {
   processor.clock_ticks += 5;
   ROR_help(dereferenced);
   ADC_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void RRA_zerox(void) {
@@ -2309,7 +2098,6 @@ static void RRA_zerox(void) {
   processor.clock_ticks += 6;
   ROR_help(dereferenced);
   ADC_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void RRA_indirectx(void) {
@@ -2318,7 +2106,6 @@ static void RRA_indirectx(void) {
   processor.clock_ticks += 8;
   ROR_help(dereferenced);
   ADC_help(*dereferenced);
-  log_cpu(processor.registers);
 }
 
 static void RRA_indirecty(void) {
@@ -2327,7 +2114,6 @@ static void RRA_indirecty(void) {
   processor.clock_ticks += 8;
   ROR_help(value);
   ADC_help(*value);
-  log_cpu(processor.registers);
 }
 
 static void AXS_absolute(void) {
@@ -2335,7 +2121,6 @@ static void AXS_absolute(void) {
   uint8_t *dereferenced = dereference_address(address);
   processor.clock_ticks += 4;
   *dereferenced = processor.registers.accumulator & processor.registers.x;
-  log_cpu(processor.registers);
 }
 
 static void AXS_zero(void) {
@@ -2343,7 +2128,6 @@ static void AXS_zero(void) {
   uint8_t *dereferenced = dereference_address(address);
   processor.clock_ticks += 3;
   *dereferenced = processor.registers.accumulator & processor.registers.x;
-  log_cpu(processor.registers);
 }
 
 static void AXS_zeroy(void) {
@@ -2351,7 +2135,6 @@ static void AXS_zeroy(void) {
   uint8_t *dereferenced = dereference_address(address + processor.registers.y);
   processor.clock_ticks += 4;
   *dereferenced = processor.registers.accumulator & processor.registers.x;
-  log_cpu(processor.registers);
 }
 
 static void AXS_indirectx(void) {
@@ -2359,7 +2142,6 @@ static void AXS_indirectx(void) {
   uint8_t *dereferenced = indexed_indirect(address);
   processor.clock_ticks += 6;
   *dereferenced = processor.registers.accumulator & processor.registers.x;
-  log_cpu(processor.registers);
 }
 
 static void LAX_absolute(void) {
@@ -2368,7 +2150,6 @@ static void LAX_absolute(void) {
   processor.clock_ticks += 4;
   processor.registers.x = *dereferenced;
   processor.registers.accumulator = *dereferenced;
-  log_cpu(processor.registers);
 }
 
 static void LAX_absolutey(void) {
@@ -2377,7 +2158,6 @@ static void LAX_absolutey(void) {
   processor.clock_ticks += 4 + page_check(address, processor.registers.y);
   processor.registers.x = *dereferenced;
   processor.registers.accumulator = *dereferenced;
-  log_cpu(processor.registers);
 }
 
 static void LAX_zero(void) {
@@ -2386,7 +2166,6 @@ static void LAX_zero(void) {
   processor.clock_ticks += 3;
   processor.registers.x = *dereferenced;
   processor.registers.accumulator = *dereferenced;
-  log_cpu(processor.registers);
 }
 
 static void LAX_zeroy(void) {
@@ -2395,7 +2174,6 @@ static void LAX_zeroy(void) {
   processor.clock_ticks += 4;
   processor.registers.x = *dereferenced;
   processor.registers.accumulator = *dereferenced;
-  log_cpu(processor.registers);
 }
 
 static void LAX_indirectx(void) {
@@ -2404,7 +2182,6 @@ static void LAX_indirectx(void) {
   processor.clock_ticks += 6;
   processor.registers.x = *dereferenced;
   processor.registers.accumulator = *dereferenced;
-  log_cpu(processor.registers);
 }
 
 static void LAX_indirecty(void) {
@@ -2413,7 +2190,6 @@ static void LAX_indirecty(void) {
   processor.clock_ticks += 5 + page_check(location, processor.registers.y);
   processor.registers.x = *value;
   processor.registers.accumulator = *value;
-  log_cpu(processor.registers);
 }
 
 static void DCM_help(uint8_t *address) {
@@ -2425,42 +2201,36 @@ static void DCM_absolute(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 6;
   DCM_help(dereference_address(address));
-  log_cpu(processor.registers);
 }
 
 static void DCM_absolutex(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 7;
   DCM_help(dereference_address(address + processor.registers.x));
-  log_cpu(processor.registers);
 }
 
 static void DCM_absolutey(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 7;
   DCM_help(dereference_address(address + processor.registers.y));
-  log_cpu(processor.registers);
 }
 
 static void DCM_zero(void) {
   uint8_t address = read_byte();
   processor.clock_ticks += 5;
   DCM_help(dereference_address(address));
-  log_cpu(processor.registers);
 }
 
 static void DCM_zerox(void) {
   uint8_t address = read_byte();
   processor.clock_ticks += 6;
   DCM_help(dereference_address(address + processor.registers.x));
-  log_cpu(processor.registers);
 }
 
 static void DCM_indirectx(void) {
   uint8_t address = read_byte();
   processor.clock_ticks += 8;
   DCM_help(indexed_indirect(address));
-  log_cpu(processor.registers);
 }
 
 static void DCM_indirecty(void) {
@@ -2479,42 +2249,36 @@ static void INS_absolute(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 6;
   INS_help(dereference_address(address));
-  log_cpu(processor.registers);
 }
 
 static void INS_absolutex(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 7;
   INS_help(dereference_address(address + processor.registers.x));
-  log_cpu(processor.registers);
 }
 
 static void INS_absolutey(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 7;
   INS_help(dereference_address(address + processor.registers.y));
-  log_cpu(processor.registers);
 }
 
 static void INS_zero(void) {
   uint8_t address = read_byte();
   processor.clock_ticks += 5;
   INS_help(dereference_address(address));
-  log_cpu(processor.registers);
 }
 
 static void INS_zerox(void) {
   uint8_t address = read_byte();
   processor.clock_ticks += 6;
   INS_help(dereference_address(address + processor.registers.x));
-  log_cpu(processor.registers);
 }
 
 static void INS_indirectx(void) {
   uint8_t address = read_byte();
   processor.clock_ticks += 7;
   INS_help(indexed_indirect(address));
-  log_cpu(processor.registers);
 }
 
 static void INS_indirecty(void) {
@@ -2522,7 +2286,6 @@ static void INS_indirecty(void) {
   indirect_indexed(address);
   processor.clock_ticks += 8;
   INS_help(value);
-  log_cpu(processor.registers);
 }
 
 static void ALR(void) {
@@ -2530,7 +2293,6 @@ static void ALR(void) {
   processor.clock_ticks += 2;
   AND_help(value);
   LSR_help(&processor.registers.accumulator);
-  log_cpu(processor.registers);
 }
 
 static void ARR(void) {
@@ -2538,14 +2300,12 @@ static void ARR(void) {
   processor.clock_ticks += 2;
   processor.registers.accumulator &= value;
   ROR_help(&processor.registers.accumulator);
-  log_cpu(processor.registers);
 }
 
 static void XAA(void) {
   uint8_t value = read_byte();
   processor.clock_ticks += 2;
   processor.registers.accumulator = processor.registers.x & value;
-  log_cpu(processor.registers);
 }
 
 static void OAL(void) {
@@ -2554,7 +2314,6 @@ static void OAL(void) {
   ORA_help(0xee);
   AND_help(value);
   processor.registers.x = processor.registers.accumulator;
-  log_cpu(processor.registers);
 }
 
 static void SAX(void) {
@@ -2565,7 +2324,6 @@ static void SAX(void) {
   calc_accumulator -= value;
   carry_check(calc_accumulator);
   processor.registers.x = calc_accumulator;
-  log_cpu(processor.registers);
 }
 static void TAS(void) {
   uint16_t location = read_word();
@@ -2575,7 +2333,6 @@ static void TAS(void) {
   tmp &= ((location >> 8) + 1);
 
   processor.memory[location + processor.registers.y] = tmp;
-  log_cpu(processor.registers);
 }
 
 /* essentially the same as XAS but for Y register */
@@ -2584,7 +2341,6 @@ static void SAY(void) {
   uint8_t value = processor.registers.y & 0xf;
   processor.clock_ticks += 5;
   processor.memory[location + processor.registers.x] = value;
-  log_cpu(processor.registers);
 }
 
 static void XAS(void) {
@@ -2592,7 +2348,6 @@ static void XAS(void) {
   uint8_t value = processor.registers.x & 0xf;
   processor.clock_ticks += 5;
   processor.memory[location + processor.registers.x] = value;
-  log_cpu(processor.registers);
 }
 
 /* TODO */
@@ -2602,7 +2357,6 @@ static void AXA_absolutey(void) {
                     ((location >> 8) + 1);
   processor.clock_ticks += 5;
   write_byte(written, location + processor.registers.y);
-  log_cpu(processor.registers);
 }
 
 static void AXA_indirecty(void) {
@@ -2612,15 +2366,13 @@ static void AXA_indirecty(void) {
   indirect_indexed(address);
   processor.clock_ticks += 6;
   write_byte(written, *value);
-  log_cpu(processor.registers);
 }
 
 static void ANC(void) {
   uint8_t value = read_byte();
   processor.registers.accumulator &= value;
   processor.clock_ticks += 2;
-  set_flag(CARRY, !!(processor.registers.accumulator & NEGATIVE));
-  log_cpu(processor.registers);
+  processor.registers._status.c = processor.registers.accumulator & 0x80;
 }
 
 static void LAS(void) {
@@ -2630,5 +2382,6 @@ static void LAS(void) {
   processor.clock_ticks += 4 + page_check(location, processor.registers.y);
   negative_check(processor.registers.accumulator);
   zero_check(processor.registers.accumulator);
-  log_cpu(processor.registers);
 }
+
+#endif
