@@ -3,7 +3,7 @@
 
 #include "cpu.h"
 
-void log_cpu(registers_t reg);
+void log_cpu(processor_t p);
 void init_log(void);
 void close_log(void);
 

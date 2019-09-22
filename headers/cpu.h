@@ -25,6 +25,7 @@ typedef enum _6502_flags {
 
 enum m6502constants {
   STACK_SIZE = 256,
+  STACK_START = 0x0100,
   RAM_SIZE = 0x1fff,
   PPU_REGISTERS_SIZE = 0x2000,
   APU_REGISTERS_SIZE = 0x18,
