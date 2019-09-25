@@ -1,9 +1,9 @@
 #include "../headers/cpu.h"
+#include "../headers/cartridge.h"
 #include "../headers/logger.h"
 
 #include <errno.h>
 #include <limits.h>
-#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -32,8 +32,6 @@
 
 typedef void (*instruction_pointer)(void);
 
-/* for "easier" access to the different parts of memory for e.g. debugging
- * purpuses */
 processor_t processor;
 
 /* like 150 lines of prototypes, have fun :) */
@@ -363,37 +361,23 @@ extern bool initialize_cpu_filename(char *path) {
     return false;
   }
   if (access(path, F_OK) == -1) {
-    printf("\n\nerrno: %d\n\n", errno);
-    switch (errno) {}
+    printf("\n\nERROR: %s\n\n", strerror(errno));
     return false;
   }
+
   struct stat buf;
   stat(path, &buf);
-  // cartridge_t *cart = open_program(path);
-
-  // initialize_cpu(cart);
+  cartridge_t *cart = open_program(path);
+  initialize_cpu(cart);
 
   atexit(&close_log);
   init_log();
 
-  FILE *fp = fopen(path, "rb");
-  fread(processor.memory, 1, buf.st_size, fp);
+  free_cartridge(cart);
 
   return true;
 }
 
-/**
-   @brief for detection of infinite loops, currently set to 5
-*/
-static const int max_count = 5;
-static int count = 0;
-static int prev_pc = 0;
-
-/**
-   @brief a dirty hack
-*/
-static uint8_t current_opcode = 0;
-static uint16_t current_pc = 0;
 /* parser, pass data to initialize cpu and this does the rest */
 extern void interpret_opcode(void) {
   /* there's a lot of boilerplate code, MAYBE it can be reduced with some macro
@@ -640,7 +624,7 @@ extern void interpret_opcode(void) {
       [0x0b] = &ANC,
       [0xbb] = &LAS,
 
-                   [0x2f] = &RLA_absolute,
+      [0x2f] = &RLA_absolute,
       [0x3f] = &RLA_absolutex,
       [0x3b] = &RLA_absolutey,
       [0x27] = &RLA_zero,
@@ -700,18 +684,7 @@ extern void interpret_opcode(void) {
   log_cpu(processor);
   unsigned char opcode = read_byte();
 
-  if (processor.registers.pc == prev_pc) {
-    if (count == max_count) {
-      fprintf(stderr, "Infinite Loop\n");
-      exit(1);
-    }
-    count++;
-  }
-  prev_pc = processor.registers.pc;
-
   if (instructions[opcode]) {
-    current_opcode = opcode;
-    current_pc = processor.registers.pc;
     instructions[opcode]();
   } else {
     printf("\033[1;31m invalid opcode: %x\033[0m\n", opcode);
@@ -779,6 +752,7 @@ static inline uint16_t read_word_at(uint16_t location) {
 }
 
 static inline uint8_t read_byte_at(uint16_t location) {
+  location &= ~0xfffff800;
   uint8_t value = processor.memory[location];
   return value;
 }
@@ -789,10 +763,9 @@ static inline uint8_t read_byte() {
 }
 
 static inline void write_byte(uint8_t value, uint16_t location) {
+  location &= ~0xfffff800;
   processor.memory[location] = value;
 }
-
-extern registers_t dump_registers(void) { return processor.registers; }
 
 static inline void zero_check(uint8_t value) {
   if (!value) {
