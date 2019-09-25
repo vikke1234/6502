@@ -25,30 +25,8 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  /* initscr(); */
-  /* int _maxx = 0, _maxy = 0; */
-  /* getmaxyx(stdscr, _maxy, _maxx); */
-  /* if (_maxx < 80 || _maxy < 20) { */
-  /*   fprintf(stderr, "Error: terminal too small, current x: %d, y: %d\n", _maxx, */
-  /*           _maxy); */
-  /*   delwin(stdscr); */
-  /*   return 1; */
-  /* } */
-
-  /* WINDOW *reg_window = derwin(stdscr, 0, 0, 0, 0); */
-  /* WINDOW *register_windows[REGISTER_AMOUNT]; */
-
-  /* for (int i = 0; i < REGISTER_AMOUNT; i++) { */
-  /*   register_windows[i] = */
-  /*       /\* 12 is length of longest name, in this case "accumulator\t" *\/ */
-  /*       derwin(reg_window, 0, 0, i*3, _maxx - 20); */
-  /* } */
-
-  /* keypad(reg_window, TRUE); */
-  /* noecho(); */
   int input = '\0';
   while (input != 'e' && input != 'q') {
-    //print_registers(register_windows);
     input = 'n';
     switch (input) {
     case 'H':
@@ -67,13 +45,6 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  /* for (int i = 0; i < REGISTER_AMOUNT; i++) { */
-  /*   delwin(register_windows[i]); */
-  /* } */
-  /* delwin(reg_window); */
-  /* delwin(stdscr); */
-  /* endwin(); */
-  /* refresh(); */
   return 0;
 }
 
