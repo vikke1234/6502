@@ -335,12 +335,10 @@ static inline uint16_t read_word_at(uint16_t location);
 extern void initialize_cpu(cartridge_t *cart) {
   if (cart == NULL) {
     fprintf(stderr, ANSI_RED "ERROR: cart is undefined" ANSI_END);
+    return;
   }
 
-  init_log();
-  atexit(&close_log);
-
-  processor.registers._sp = 0;
+  processor.registers._sp = 0xff;
   processor.registers.accumulator = 0;
   processor.registers.x = 0;
   processor.registers.y = 0;
