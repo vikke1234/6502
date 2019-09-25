@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 typedef struct {
+  _Bool nes2;
   union {
     uint8_t header[16];
     struct {
@@ -19,4 +20,5 @@ typedef struct {
 } cartridge_t;
 
 extern cartridge_t *open_program(const char * const path);
+extern void free_cartridge(cartridge_t *cart);
 #endif /* CARTRIDGE_H */

@@ -14,11 +14,19 @@ extern cartridge_t *open_program(const char *const path) {
   cartridge_t *cartridge = malloc(sizeof(cartridge_t));
 
   fread(&cartridge->header, 16, sizeof(unsigned char), fp);
-  static unsigned char const type[] = {0x4e, 0x45, 0x53, 0x1a};
 
+  static unsigned char const type[] = {0x4e, 0x45, 0x53, 0x1a};
   if (memcmp(cartridge->header.constant, type, 4)) {
     fprintf(stderr, "Error: not a NES file");
+    exit(1);
   }
+
+  printf("%x, prg size: %x, chr size: %d, flags 6: %x, flags7: %x\n",
+         cartridge->header.constant[3], cartridge->header.prg_rom_size, cartridge->header.chr_rom_size,
+         cartridge->header.flags6, cartridge->header.flags7);
+
+  cartridge->nes2 = cartridge->header.header[7] & 0x0c;
+
   cartridge->prg_rom = calloc(0x4000 * cartridge->header.prg_rom_size,
                               1); /* 0x4000 magic number for size of prg_rom */
   cartridge->chr_rom = calloc(0x2000 * cartridge->header.chr_rom_size,
