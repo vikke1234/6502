@@ -23,7 +23,7 @@ typedef enum {
   UNKNOWN
 } addressing_modes_t;
 
-static FILE *fp;
+static FILE *fp = NULL;
 
 void init_log(void) {
   time_t now;
