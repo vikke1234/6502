@@ -681,6 +681,10 @@ extern void interpret_opcode(void) {
   };
   log_cpu(processor);
   unsigned char opcode = read_byte();
+  if (processor.memory[0x2] != 0) {
+    fprintf(stderr, "Error: %x h", processor.memory[0x2]);
+    exit(1);
+  }
 
   if (instructions[opcode]) {
     instructions[opcode]();
