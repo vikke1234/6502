@@ -37,19 +37,6 @@ enum m6502constants {
 
 enum error_codes6502 { SUCCESS, STACK_OVERFLOW, STACK_UNDERFLOW };
 
-/* of type unsigned char instead of uint8_t because uint8_t doesn't allow
- * aliasing
- * CURRENTLY NOT USED */
-typedef struct {
-  unsigned char RAM[RAM_SIZE]; /* RAM size 0x800, mirrored 3 times */
-  unsigned char ppu_registers[PPU_REGISTERS_SIZE]; /* actual size 0x8, repeats
-                                                    every 8 bytes */
-  unsigned char apu_registers[APU_REGISTERS_SIZE];
-  unsigned char test_registers[TEST_REGISTERS_SIZE]; /* for when the CPU is in
-                                                        test mode */
-  unsigned char rom[ROM_MEMORY_SIZE]; /* ROM space and mapper registers */
-} memory_map;
-
 typedef struct _processor_registers {
   uint16_t pc;
   uint8_t _sp;               /* index where to place things in the stack */
@@ -60,7 +47,7 @@ typedef struct _processor_registers {
     struct {
       uint8_t n : 1;
       uint8_t v : 1;
-      uint8_t : 2;
+      uint8_t : 1;
       uint8_t b : 1;
       uint8_t d : 1;
       uint8_t i : 1;
