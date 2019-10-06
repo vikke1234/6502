@@ -31,7 +31,6 @@ int main(int argc, char *argv[]) {
     switch (input) {
     case 'H':
     case 'h':
-      print_help();
       break;
     case 'N':
     case 'n':
@@ -40,7 +39,6 @@ int main(int argc, char *argv[]) {
       break;
 
     default:
-      print_help();
       break;
     }
   }
