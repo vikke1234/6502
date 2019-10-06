@@ -338,14 +338,15 @@ extern void initialize_cpu(cartridge_t *cart) {
     return;
   }
 
-  processor.registers._sp = 0xff;
+  processor.registers._sp = 0xfd;
   processor.registers.accumulator = 0;
   processor.registers.x = 0;
   processor.registers.y = 0;
-  processor.registers.pc = read_word_at(0xfffc);
+  processor.registers.pc = 0xc000;
   processor.registers.status = 0;
 
-  memset(&processor.memory, 0xff, 0x07ff);
+  memset(&processor.memory, 0x0, 0xffff);
+  memcpy(processor.memory + 0x8000, cart->prg_rom, 0x4000);
 }
 
 /**
@@ -692,6 +693,28 @@ extern void interpret_opcode(void) {
 
 static inline void copy_to_stack(unsigned char value) {
   processor.memory[STACK_START + processor.registers._sp] = value;
+}
+
+static inline void push_word_to_stack(uint16_t value) {
+  if (processor.registers._sp - 2 < processor.registers._sp) {
+    processor.memory[STACK_START + (processor.registers._sp--)] = value & 0xff;
+    processor.memory[STACK_START + (processor.registers._sp--)] = value >> 8;
+  } else {
+    fprintf(stderr, "Stack Overflow, exitting");
+    exit(STACK_OVERFLOW);
+  }
+}
+
+static inline uint16_t pop_word_from_stack(void) {
+  uint16_t value = 0;
+  if (processor.registers._sp + 2 > processor.registers._sp) {
+    value = processor.memory[STACK_START + (++processor.registers._sp)];
+    value |= processor.memory[STACK_START + (++processor.registers._sp)] << 8;
+  } else {
+    fprintf(stderr, "Stack Overflow, exitting");
+    exit(STACK_OVERFLOW);
+  }
+  return value;
 }
 
 static inline void push_to_stack(unsigned char value) {
