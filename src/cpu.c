@@ -760,31 +760,53 @@ dereference_address(uint16_t address) {
 }
 
 static inline uint16_t read_word() {
-  uint16_t value = ((processor.memory[processor.registers.pc + 1] << 8) |
-                    processor.memory[processor.registers.pc]);
+  uint16_t value = read_word_at(processor.registers.pc);
   processor.registers.pc += 2;
   return value;
 }
 
-static inline uint16_t read_word_at(uint16_t location) {
+static inline uint16_t read_word_at(uint16_t address) {
+  switch (address >> 14) {
+  case 1:
+    address &= ~0xffffc000;
+    break;
+  case 2:
+    address &= ~0xffffdff8;
+    break;
+  case 3:
+    address &= ~0xffff4000;
+    break;
+  }
   uint16_t value =
-      (processor.memory[location + 1] << 8) | processor.memory[location];
+      (processor.memory[address + 1] << 8) | processor.memory[address];
   return value;
 }
 
-static inline uint8_t read_byte_at(uint16_t location) {
-  location &= ~0xfffff800;
-  uint8_t value = processor.memory[location];
+static inline uint8_t read_byte_at(uint16_t address) {
+  switch (address >> 14) {
+  case 1:
+    address &= ~0xffffc000; /* PRG RAM */
+    break;
+  case 2:
+    address &= ~0xffffdff8; /* APU */
+    break;
+  case 3:
+    address &= ~0xffff4000; /* PRG ROM */
+    break;
+  }
+  uint8_t value = processor.memory[address];
   return value;
 }
 
 static inline uint8_t read_byte() {
-  uint8_t value = processor.memory[processor.registers.pc++];
+  uint8_t value = read_byte_at(processor.registers.pc++);
   return value;
 }
 
 static inline void write_byte(uint8_t value, uint16_t location) {
-  location &= ~0xfffff800;
+  if (location < 0x2000) {
+    location &= ~0xfffff800;
+  }
   processor.memory[location] = value;
 }
 
@@ -1339,8 +1361,7 @@ static void JMP_indirect(void) {
 }
 
 static void JSR(void) {
-  processor.memory[STACK_START + processor.registers._sp] =
-      processor.registers.pc - 1;
+  push_word_to_stack(processor.registers.pc - 1);
   uint16_t location = read_word();
   processor.registers.pc = location;
   processor.clock_ticks += 6;
@@ -1680,7 +1701,7 @@ static void RTI(void) {
 }
 
 static void RTS(void) {
-  processor.registers.pc = pop_from_stack();
+  processor.registers.pc = pop_word_from_stack();
   processor.registers.pc++;
   processor.clock_ticks += 6;
 }
