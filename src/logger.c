@@ -5,24 +5,6 @@
 
 #include "../headers/logger.h"
 
-/** @deprecated */
-typedef enum {
-  ACCUMULATOR,
-  IMMEDIATE,
-  ZERO_PAGE,
-  ZERO_PAGE_X,
-  ZERO_PAGE_Y,
-  RELATIVE,
-  IMPLIED,
-  ABSOLUTE,
-  ABSOLUTE_X,
-  ABSOLUTE_Y,
-  INDIRECT,
-  INDIRECT_X,
-  INDIRECT_Y,
-  UNKNOWN
-} addressing_modes_t;
-
 static FILE *fp = NULL;
 
 void init_log(void) {
@@ -42,17 +24,6 @@ void init_log(void) {
   fp = fopen(buffer, "w");
 }
 
-char *get_str(addressing_modes_t a) {
-  static char *modes[] = {
-      [IMMEDIATE] = "immediate",     [ACCUMULATOR] = "accumulator",
-      [ZERO_PAGE] = "zero page",     [ABSOLUTE] = "absolute",
-      [ZERO_PAGE_Y] = "zero page y", [ZERO_PAGE_X] = "zero page x",
-      [ABSOLUTE_X] = "absolute x",   [ABSOLUTE_Y] = "absolute y",
-      [INDIRECT_X] = "indirect x",   [INDIRECT_Y] = "indirect y",
-      [IMPLIED] = "implied",         [RELATIVE] = "relative",
-      [UNKNOWN] = "unknown"};
-  return modes[a];
-}
 /**
    @brief writes to a log file, if debug build it also prints to stdio
    this will probably be expanded on, to add the instructions
