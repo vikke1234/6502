@@ -340,7 +340,7 @@ void log_cpu(processor_t processor) {
 
   };
   char buffer[516] = {0};
-  char *format_buffer = malloc(sizeof(char) * 1024);
+  char *format_buffer = calloc(1024, sizeof(char));
   unsigned char opcode = read_byte_at(processor, processor.registers.pc++);
   opcode_t info = ops[opcode];
   uint16_t arg = 0;
@@ -356,7 +356,6 @@ void log_cpu(processor_t processor) {
     printf("error: opcode $%x\n", opcode);
     exit(1);
   }
-  format_buffer[0] = 't';
   sprintf(buffer, "%.4x\t", processor.registers.pc - 1);
   strncat(format_buffer, buffer, 6);
   sprintf(buffer, byte_formats[info.len - 1], opcode, arg & 0xff, arg >> 8);
