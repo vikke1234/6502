@@ -7,11 +7,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-void print_registers(WINDOW **windows);
-void print_help(void);
-
-#define REGISTER_AMOUNT 5
-
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {

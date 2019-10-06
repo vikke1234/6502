@@ -24,6 +24,38 @@ void init_log(void) {
   fp = fopen(buffer, "w");
 }
 
+static inline uint16_t read_word_at(processor_t processor, uint16_t address) {
+  switch (address >> 14) {
+  case 1:
+    address &= ~0xffffc000;
+    break;
+  case 2:
+    address &= ~0xffffdff8;
+    break;
+  case 3:
+    address &= ~0xffff4000;
+    break;
+  }
+  uint16_t value =
+      (processor.memory[address] | (processor.memory[address + 1] << 8));
+  return value;
+}
+
+static inline uint8_t read_byte_at(processor_t processor, uint16_t address) {
+  switch (address >> 14) {
+  case 1:
+    address &= ~0xffffc000; /* PRG RAM */
+    break;
+  case 2:
+    address &= ~0xffffdff8; /* APU */
+    break;
+  case 3:
+    address &= ~0xffff4000; /* PRG ROM */
+    break;
+  }
+  uint8_t value = processor.memory[address++];
+  return value;
+}
 /**
    @brief writes to a log file, if debug build it also prints to stdio
    this will probably be expanded on, to add the instructions
@@ -32,7 +64,6 @@ void init_log(void) {
    @param reg cpu registers
  */
 void log_cpu(processor_t processor) {
-  char buffer[256];
   typedef struct {
     char *format;
     uint8_t len;
@@ -309,36 +340,36 @@ void log_cpu(processor_t processor) {
 
   };
   char *format_buffer = calloc(1024, sizeof(char));
-  unsigned char opcode = processor.memory[processor.registers.pc++];
+  char buffer[516];
+  unsigned char opcode = read_byte_at(processor, processor.registers.pc++);
   opcode_t info = ops[opcode];
   uint16_t arg = 0;
   const char *byte_strings[] = {"%.2x\t\t", "%.2x %.2x\t\t", "%.2x %.2x %.2x\t"};
-
-  sprintf(buffer, "%.4x\t", processor.registers.pc - 1);
-  strcat(format_buffer, buffer);
-  sprintf(buffer, byte_strings[info.len-1], opcode, arg & 0xff, arg >> 8);
-  strcat(format_buffer, buffer);
 
   if (info.format == NULL) {
     printf("error: opcode $%x\n", opcode);
     exit(1);
   }
+  sprintf(buffer, "%.4x\t", processor.registers.pc - 1);
+  strncat(format_buffer, buffer, 6);
+  sprintf(buffer, byte_strings[info.len - 1], opcode, arg & 0xff, arg >> 8);
+  strcat(format_buffer, buffer);
   sprintf(buffer, info.format, arg);
   strcat(format_buffer, buffer);
-  if(strlen(format_buffer) < 8) {
+
+  if (info.len == 1) {
     strcat(format_buffer, "\t");
   }
-  sprintf(
-      buffer,
-      "\t\tA: 0x%04x X: 0x%02x Y: 0x%02x SP: 0x%02x P:  c: %d, z: %d, "
-      "i: %d, d: "
-      "%d, b: %d, V: %d, n: %d\n",
-      processor.registers.accumulator,
-      processor.registers.x, processor.registers.y, processor.registers._sp,
-      processor.registers._status.c, processor.registers._status.z,
-      processor.registers._status.i, processor.registers._status.d,
-      processor.registers._status.b, processor.registers._status.v,
-      processor.registers._status.n);
+  sprintf(buffer,
+          "\t\tA: 0x%04x X: 0x%02x Y: 0x%02x SP: 0x%02x P:  c: %d, z: %d, "
+          "i: %d, d: "
+          "%d, b: %d, V: %d, n: %d\n",
+          processor.registers.accumulator, processor.registers.x,
+          processor.registers.y, processor.registers._sp,
+          processor.registers._status.c, processor.registers._status.z,
+          processor.registers._status.i, processor.registers._status.d,
+          processor.registers._status.b, processor.registers._status.v,
+          processor.registers._status.n);
 
   strcat(format_buffer, buffer);
   fprintf(fp, "%s", format_buffer);

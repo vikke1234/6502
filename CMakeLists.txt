@@ -14,7 +14,7 @@ include_directories(${CURSES_INCLUDE_DIR})
 file(GLOB CPU_SOURCES "src/cpu.c" "src/logger.c" "src/cartridge.c")
 file(GLOB MONITOR_SOURCES "src/ui/[A-Za-z]*.c")
 
-set(CMAKE_C_FLAGS_DEBUG "-g -std=c11 -Wall -Wextra -fsanitize=address -fsanitize=undefined -DDEBUG")
+set(CMAKE_C_FLAGS_DEBUG "-g -O0 -std=c11 -Wall -Wextra -fsanitize=address -fsanitize=undefined -DDEBUG")
 set(CMAKE_C_FLAGS "-std=c11")
 
 if(WIN32) 

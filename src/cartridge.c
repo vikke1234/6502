@@ -42,6 +42,8 @@ extern cartridge_t *open_program(const char *const path) {
   fread(cartridge->prg_rom, 1, 0x4000 * cartridge->header.prg_rom_size, fp);
   fread(cartridge->chr_rom, 1, 0x2000 * cartridge->header.chr_rom_size, fp);
 
+  fclose(fp);
+
   return cartridge;
 }
 
