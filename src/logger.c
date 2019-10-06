@@ -5,24 +5,6 @@
 
 #include "../headers/logger.h"
 
-/** @deprecated */
-typedef enum {
-  ACCUMULATOR,
-  IMMEDIATE,
-  ZERO_PAGE,
-  ZERO_PAGE_X,
-  ZERO_PAGE_Y,
-  RELATIVE,
-  IMPLIED,
-  ABSOLUTE,
-  ABSOLUTE_X,
-  ABSOLUTE_Y,
-  INDIRECT,
-  INDIRECT_X,
-  INDIRECT_Y,
-  UNKNOWN
-} addressing_modes_t;
-
 static FILE *fp = NULL;
 
 void init_log(void) {
@@ -42,16 +24,37 @@ void init_log(void) {
   fp = fopen(buffer, "w");
 }
 
-char *get_str(addressing_modes_t a) {
-  static char *modes[] = {
-      [IMMEDIATE] = "immediate",     [ACCUMULATOR] = "accumulator",
-      [ZERO_PAGE] = "zero page",     [ABSOLUTE] = "absolute",
-      [ZERO_PAGE_Y] = "zero page y", [ZERO_PAGE_X] = "zero page x",
-      [ABSOLUTE_X] = "absolute x",   [ABSOLUTE_Y] = "absolute y",
-      [INDIRECT_X] = "indirect x",   [INDIRECT_Y] = "indirect y",
-      [IMPLIED] = "implied",         [RELATIVE] = "relative",
-      [UNKNOWN] = "unknown"};
-  return modes[a];
+static inline uint16_t read_word_at(processor_t processor, uint16_t address) {
+  switch (address >> 14) {
+  case 1:
+    address &= ~0xffffc000;
+    break;
+  case 2:
+    address &= ~0xffffdff8;
+    break;
+  case 3:
+    address &= ~0xffff4000;
+    break;
+  }
+  uint16_t value =
+      (processor.memory[address] | (processor.memory[address + 1] << 8));
+  return value;
+}
+
+static inline uint8_t read_byte_at(processor_t processor, uint16_t address) {
+  switch (address >> 14) {
+  case 1:
+    address &= ~0xffffc000; /* PRG RAM */
+    break;
+  case 2:
+    address &= ~0xffffdff8; /* APU */
+    break;
+  case 3:
+    address &= ~0xffff4000; /* PRG ROM */
+    break;
+  }
+  uint8_t value = processor.memory[address++];
+  return value;
 }
 /**
    @brief writes to a log file, if debug build it also prints to stdio
@@ -61,7 +64,6 @@ char *get_str(addressing_modes_t a) {
    @param reg cpu registers
  */
 void log_cpu(processor_t processor) {
-  char buffer[256];
   typedef struct {
     char *format;
     uint8_t len;
@@ -337,42 +339,51 @@ void log_cpu(processor_t processor) {
       [0x53] = {"sre (0x%02x),y", 2},
 
   };
-  char format_buffer[1024];
-  unsigned char opcode = processor.memory[processor.registers.pc];
+  char buffer[516] = {0};
+  char *format_buffer = malloc(sizeof(char) * 1024);
+  unsigned char opcode = read_byte_at(processor, processor.registers.pc++);
   opcode_t info = ops[opcode];
   uint16_t arg = 0;
-
-  if(info.len == 3) {
-    arg |= (processor.memory[processor.registers.pc + 2] << 8);
-    /* break intentionally left out */
+  const char *byte_formats[3] = {"%.2x\t\t", "%.2x %.2x\t\t",
+                                 "%.2x %.2x %.2x\t"};
+  if (info.len == 3) {
+    arg = read_word_at(processor, processor.registers.pc);
+  } else if (info.len == 2) {
+    arg = read_byte_at(processor, processor.registers.pc);
   }
-  arg |= processor.memory[processor.registers.pc + 1];
 
   if (info.format == NULL) {
     printf("error: opcode $%x\n", opcode);
     exit(1);
   }
-  sprintf(format_buffer, info.format, arg);
-  if(strlen(format_buffer) < 8) {
+  format_buffer[0] = 't';
+  sprintf(buffer, "%.4x\t", processor.registers.pc - 1);
+  strncat(format_buffer, buffer, 6);
+  sprintf(buffer, byte_formats[info.len - 1], opcode, arg & 0xff, arg >> 8);
+  strcat(format_buffer, buffer);
+  sprintf(buffer, info.format, arg);
+  strcat(format_buffer, buffer);
+
+  if (info.len == 1) {
     strcat(format_buffer, "\t");
   }
-  sprintf(
-      buffer,
-      "\t\tPC: %.4x A: 0x%04x X: 0x%02x Y: 0x%02x SP: 0x%02x P:  c: %d, z: %d, "
-      "i: %d, d: "
-      "%d, b: %d, V: %d, n: %d\n",
-      processor.registers.pc, processor.registers.accumulator,
-      processor.registers.x, processor.registers.y, processor.registers._sp,
-      processor.registers._status.c, processor.registers._status.z,
-      processor.registers._status.i, processor.registers._status.d,
-      processor.registers._status.b, processor.registers._status.v,
-      processor.registers._status.n);
+  sprintf(buffer,
+          "\t\tA: 0x%04x X: 0x%02x Y: 0x%02x SP: 0x%02x P:  c: %d, z: %d, "
+          "i: %d, d: "
+          "%d, b: %d, V: %d, n: %d\n",
+          processor.registers.accumulator, processor.registers.x,
+          processor.registers.y, processor.registers._sp,
+          processor.registers._status.c, processor.registers._status.z,
+          processor.registers._status.i, processor.registers._status.d,
+          processor.registers._status.b, processor.registers._status.v,
+          processor.registers._status.n);
 
   strcat(format_buffer, buffer);
   fprintf(fp, "%s", format_buffer);
 #ifdef DEBUG
   printf(format_buffer);
 #endif
+  free(format_buffer);
 }
 
 void close_log() {
