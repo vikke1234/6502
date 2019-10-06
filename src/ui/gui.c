@@ -46,25 +46,3 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
-
-void print_help(void) {}
-
-void print_registers(WINDOW **windows) {
-  uint8_t unpacked[REGISTER_AMOUNT]; /* see line below */
-  static const char *const(strings[REGISTER_AMOUNT]) = {"PC", "Accumulator", "X register",
-                                         "Yregister", "SP"};
-
-  registers_t registers = dump_registers();
-  unpacked[0] = registers.pc;
-  unpacked[1] = registers.x;
-  unpacked[2] = registers.y;
-  unpacked[3] = registers._sp;
-  unpacked[4] = registers.status;
-
-  /* BUG */
-  for (int i = 0; i < REGISTER_AMOUNT; i++) {
-    mvwprintw(windows[i], 1, 1, "%s\n", strings[i]);
-    mvwprintw(windows[i], 2, 1, "0x%x", unpacked[i]);
-    wrefresh(windows[i]);
-  }
-}
