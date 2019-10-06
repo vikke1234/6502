@@ -308,31 +308,32 @@ void log_cpu(processor_t processor) {
       [0x53] = {"sre (0x%02x),y", 2},
 
   };
-  char format_buffer[1024];
-  unsigned char opcode = processor.memory[processor.registers.pc];
+  char *format_buffer = calloc(1024, sizeof(char));
+  unsigned char opcode = processor.memory[processor.registers.pc++];
   opcode_t info = ops[opcode];
   uint16_t arg = 0;
+  const char *byte_strings[] = {"%.2x\t\t", "%.2x %.2x\t\t", "%.2x %.2x %.2x\t"};
 
-  if(info.len == 3) {
-    arg |= (processor.memory[processor.registers.pc + 2] << 8);
-    /* break intentionally left out */
-  }
-  arg |= processor.memory[processor.registers.pc + 1];
+  sprintf(buffer, "%.4x\t", processor.registers.pc - 1);
+  strcat(format_buffer, buffer);
+  sprintf(buffer, byte_strings[info.len-1], opcode, arg & 0xff, arg >> 8);
+  strcat(format_buffer, buffer);
 
   if (info.format == NULL) {
     printf("error: opcode $%x\n", opcode);
     exit(1);
   }
-  sprintf(format_buffer, info.format, arg);
+  sprintf(buffer, info.format, arg);
+  strcat(format_buffer, buffer);
   if(strlen(format_buffer) < 8) {
     strcat(format_buffer, "\t");
   }
   sprintf(
       buffer,
-      "\t\tPC: %.4x A: 0x%04x X: 0x%02x Y: 0x%02x SP: 0x%02x P:  c: %d, z: %d, "
+      "\t\tA: 0x%04x X: 0x%02x Y: 0x%02x SP: 0x%02x P:  c: %d, z: %d, "
       "i: %d, d: "
       "%d, b: %d, V: %d, n: %d\n",
-      processor.registers.pc, processor.registers.accumulator,
+      processor.registers.accumulator,
       processor.registers.x, processor.registers.y, processor.registers._sp,
       processor.registers._status.c, processor.registers._status.z,
       processor.registers._status.i, processor.registers._status.d,
@@ -344,6 +345,7 @@ void log_cpu(processor_t processor) {
 #ifdef DEBUG
   printf(format_buffer);
 #endif
+  free(format_buffer);
 }
 
 void close_log() {
