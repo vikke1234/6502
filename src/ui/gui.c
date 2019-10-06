@@ -1,4 +1,4 @@
-#include "../headers/cpu.h"
+#include "../../headers/cpu.h"
 #include <ncurses.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,7 +40,6 @@ int main(int argc, char *argv[]) {
       break;
 
     default:
-      print_help();
       break;
     }
   }
