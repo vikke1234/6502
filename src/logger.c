@@ -350,6 +350,12 @@ void log_cpu(processor_t processor) {
     printf("error: opcode $%x\n", opcode);
     exit(1);
   }
+
+  if(info.len == 3) {
+    arg = read_word_at(processor, processor.registers.pc);
+  } else if (info.len == 2) {
+    arg = read_byte_at(processor, processor.registers.pc);
+  }
   sprintf(buffer, "%.4x\t", processor.registers.pc - 1);
   strncat(format_buffer, buffer, 6);
   sprintf(buffer, byte_strings[info.len - 1], opcode, arg & 0xff, arg >> 8);
