@@ -815,18 +815,10 @@ static inline void write_byte(uint8_t value, uint16_t location) {
 }
 
 static inline void zero_check(uint8_t value) {
-  if (!value) {
-    processor.registers._status.z = true;
-  } else {
-    processor.registers._status.z = false;
-  }
+  processor.registers._status.z = !value;
 }
 static inline void negative_check(uint8_t value) {
-  if (value & 0x80) {
-    processor.registers._status.n = true;
-  } else {
-    processor.registers._status.n = false;
-  }
+    processor.registers._status.n = value & 0x80;
 }
 static inline void overflow_check(uint16_t value, uint16_t result) {
   /* algo to check if there's been an overflow, google for more info */
