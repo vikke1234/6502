@@ -1318,13 +1318,13 @@ static void INC_zerox(void) {
 }
 
 static void INC_absolute(void) {
-  uint8_t location = read_word();
+  uint16_t location = read_word();
   processor.clock_ticks += 6;
   INC_help(location);
 }
 
 static void INC_absolutex(void) {
-  uint8_t location = read_word();
+  uint16_t location = read_word();
   processor.clock_ticks += 7;
   INC_help(location);
 }
@@ -1528,7 +1528,7 @@ static void NOP_absolute(void) {
 }
 
 static void NOP_absolutex(void) {
-  uint8_t address = read_word();
+  uint16_t address = read_word();
   processor.clock_ticks += 4 + page_check(address, processor.registers.x);
 }
 static void NOP_zero(void) { processor.clock_ticks += 3; }
