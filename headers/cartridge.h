@@ -7,7 +7,7 @@ typedef struct {
   union {
     uint8_t header[16];
     struct {
-      uint8_t constant[4];
+      uint32_t constant;
       uint8_t prg_rom_size;
       uint8_t chr_rom_size;
       uint8_t flags6;
