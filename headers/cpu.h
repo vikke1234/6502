@@ -57,8 +57,6 @@ typedef struct _processor_registers {
   };
 } registers_t;
 
-/* maybe use this for nice bundling dunno? would reduce globals which is nice
- * (clock_ticks) currently not in use*/
 typedef struct {
   uint8_t memory[TOTAL_MEMORY_SIZE + 1];
   registers_t registers;

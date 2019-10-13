@@ -7,10 +7,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
-
 #ifdef __unix__
 #include <unistd.h>
-
 #elif defined(_WIN32) || defined(WIN32)
 /* required to compile on windows */
 #define __attribute__(x)
@@ -18,7 +16,6 @@
 #define inline __inline
 #define access _access
 #define F_OK 0
-#define _CRT_SECURE_NO_WARNINGS
 #include <io.h>
 #endif
 
@@ -682,10 +679,6 @@ extern void interpret_opcode(void) {
   };
   log_cpu(processor);
   unsigned char opcode = read_byte();
-  if (processor.memory[0x2] != 0) {
-    fprintf(stderr, "Error: %x h", processor.memory[0x2]);
-    exit(1);
-  }
 
   if (instructions[opcode]) {
     instructions[opcode]();
@@ -701,8 +694,8 @@ static inline void copy_to_stack(unsigned char value) {
 
 static inline void push_word_to_stack(uint16_t value) {
   if (processor.registers._sp - 2 < processor.registers._sp) {
-    processor.memory[STACK_START + (processor.registers._sp--)] = value & 0xff;
     processor.memory[STACK_START + (processor.registers._sp--)] = value >> 8;
+    processor.memory[STACK_START + (processor.registers._sp--)] = value & 0xff;
   } else {
     fprintf(stderr, "Stack Overflow, exitting");
     exit(STACK_OVERFLOW);
@@ -818,7 +811,7 @@ static inline void zero_check(uint8_t value) {
   processor.registers._status.z = !value;
 }
 static inline void negative_check(uint8_t value) {
-    processor.registers._status.n = value & 0x80;
+  processor.registers._status.n = value & 0x80;
 }
 static inline void overflow_check(uint16_t value, uint16_t result) {
   /* algo to check if there's been an overflow, google for more info */
@@ -1357,8 +1350,9 @@ static void JMP_indirect(void) {
 }
 
 static void JSR(void) {
-  push_word_to_stack(processor.registers.pc - 1);
   uint16_t location = read_word();
+  push_word_to_stack(processor.registers.pc - 1);
+
   processor.registers.pc = location;
   processor.clock_ticks += 6;
 }
@@ -1692,7 +1686,6 @@ static void ROR_absolutex(void) {
 
 static void RTI(void) {
   processor.registers.status = pop_from_stack();
-  processor.registers.pc++;
   processor.clock_ticks += 6;
 }
 
@@ -1753,14 +1746,14 @@ static void SBC_absolutey(void) {
 }
 
 static void SBC_indirectx(void) {
-  uint16_t address = read_word();
+  uint8_t address = read_byte();
   uint8_t *ptr = indexed_indirect(address);
   processor.clock_ticks += 6;
   SBC_help(*ptr);
 }
 
 static void SBC_indirecty(void) {
-  uint16_t address = read_word();
+  uint8_t address = read_byte();
   indirect_indexed(address);
   processor.clock_ticks += 5 + page_check(location, processor.registers.y);
   SBC_help(*value);
@@ -1883,7 +1876,7 @@ static void TXA(void) {
 }
 
 static void TXS(void) {
-  copy_to_stack(processor.registers.x);
+  processor.registers._sp = processor.registers.x;
   zero_check(processor.registers.x);
   negative_check(processor.registers.x);
   processor.clock_ticks += 2;
