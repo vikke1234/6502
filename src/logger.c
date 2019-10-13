@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <errno.h>
 
 #include "../headers/logger.h"
 
@@ -22,9 +23,12 @@ void init_log(void) {
   printf("opening: %s\n", buffer);
 
   fp = fopen(buffer, "w");
+  if (fp == NULL) {
+    printf("Error could not open file: %s", strerror(errno));
+  }
 }
 
-static inline uint16_t read_word_at(processor_t processor, uint16_t address) {
+static inline uint16_t read_word_at(processor_t *processor, uint16_t address) {
   switch (address >> 14) {
   case 1:
     address &= ~0xffffc000;
@@ -37,11 +41,11 @@ static inline uint16_t read_word_at(processor_t processor, uint16_t address) {
     break;
   }
   uint16_t value =
-      (processor.memory[address] | (processor.memory[address + 1] << 8));
+      (processor->memory[address] | (processor->memory[address + 1] << 8));
   return value;
 }
 
-static inline uint8_t read_byte_at(processor_t processor, uint16_t address) {
+static inline uint8_t read_byte_at(processor_t *processor, uint16_t address) {
   switch (address >> 14) {
   case 1:
     address &= ~0xffffc000; /* PRG RAM */
@@ -53,7 +57,7 @@ static inline uint8_t read_byte_at(processor_t processor, uint16_t address) {
     address &= ~0xffff4000; /* PRG ROM */
     break;
   }
-  uint8_t value = processor.memory[address++];
+  uint8_t value = processor->memory[address++];
   return value;
 }
 /**
@@ -65,7 +69,7 @@ static inline uint8_t read_byte_at(processor_t processor, uint16_t address) {
  */
 void log_cpu(processor_t processor) {
   typedef struct {
-    char *format;
+    const char *const format;
     uint8_t len;
   } opcode_t;
 
@@ -214,8 +218,19 @@ void log_cpu(processor_t processor) {
       [0xf6] = {"inc 0x%02x, x", 2},
       [0xf8] = {"sed ", 1},
       [0xfe] = {"inc 0x%04x, x", 3},
-
       [0x00] = {"brk", 1},
+      [0xea] = {"nop", 1},
+      [0xe9] = {"sbc #0x%02x", 2},
+      [0xe5] = {"sbc 0x%02x", 2},
+      [0xf5] = {"sbc 0x%02x,x", 2},
+      [0xed] = {"sbc 0x%04x", 3},
+      [0xfd] = {"sbc 0x%04x,x", 3},
+      [0xf9] = {"sbc 0x%04x,y", 3},
+      [0xe1] = {"sbc (0x%02x,x)", 2},
+      [0xf1] = {"sbc (0x%02x),y", 2},
+      [0xeb] = {"sbc #0x%02x", 2},
+
+#ifdef UNOFFICIAL_OPCODES
       [0x0b] = {"anc #0x%02x", 2},
       [0x2b] = {"anc #0x%02x", 2},
       [0x8b] = {"ane #0x%02x", 2},
@@ -255,7 +270,6 @@ void log_cpu(processor_t processor) {
       [0xa3] = {"lax (0x%02x,x)", 2},
       [0xb3] = {"lax (0x%02x),y", 2},
       [0xab] = {"lxa #0x%02x", 2},
-      [0xea] = {"nop", 1},
       [0x1a] = {"nop", 1},
       [0x3a] = {"nop", 1},
       [0x5a] = {"nop", 1},
@@ -301,15 +315,7 @@ void log_cpu(processor_t processor) {
       [0x97] = {"sax 0x%02x,y", 2},
       [0x8f] = {"sax 0x%04x", 3},
       [0x83] = {"sax (0x%02x,x)", 2},
-      [0xe9] = {"sbc #0x%02x", 2},
-      [0xe5] = {"sbc 0x%02x", 2},
-      [0xf5] = {"sbc 0x%02x,x", 2},
-      [0xed] = {"sbc 0x%04x", 3},
-      [0xfd] = {"sbc 0x%04x,x", 3},
-      [0xf9] = {"sbc 0x%04x,y", 3},
-      [0xe1] = {"sbc (0x%02x,x)", 2},
-      [0xf1] = {"sbc (0x%02x),y", 2},
-      [0xeb] = {"sbc #0x%02x", 2},
+
       //[0xef] = {"sbc 0x%06x", 4},
       //[0xff] = {"sbc 0x%06x,x", 4},
       //[0xf2] = {"sbc (0x%02x)", 2},
@@ -337,27 +343,34 @@ void log_cpu(processor_t processor) {
       [0x5b] = {"sre 0x%04x,y", 3},
       [0x43] = {"sre (0x%02x,x)", 2},
       [0x53] = {"sre (0x%02x),y", 2},
-
+#endif /* UNOFFICIAL_OPCODES */
   };
   char *format_buffer = calloc(1024, sizeof(char));
+  if (format_buffer == NULL) {
+    fprintf(stderr, "Could not allocate format_buffer\n");
+    return;
+  }
   char buffer[516];
-  unsigned char opcode = read_byte_at(processor, processor.registers.pc++);
+  unsigned char opcode = read_byte_at(&processor, processor.registers.pc++);
   opcode_t info = ops[opcode];
   uint16_t arg = 0;
   const char *byte_strings[] = {"%.2x\t\t", "%.2x %.2x\t\t", "%.2x %.2x %.2x\t"};
 
   if (info.format == NULL) {
-    printf("error: opcode $%x\n", opcode);
+    fprintf(fp, "error: opcode $%x\n", opcode);
+    printf("Error invalid opcode: $%x, pc: $%x\n", opcode, processor.registers.pc-1);
+    close_log();
     exit(1);
   }
 
   if(info.len == 3) {
-    arg = read_word_at(processor, processor.registers.pc);
+    arg = read_word_at(&processor, processor.registers.pc);
   } else if (info.len == 2) {
-    arg = read_byte_at(processor, processor.registers.pc);
+    arg = read_byte_at(&processor, processor.registers.pc);
   }
+
   sprintf(buffer, "%.4x\t", processor.registers.pc - 1);
-  strncat(format_buffer, buffer, 6);
+  strncat(format_buffer, buffer, 1023);
   sprintf(buffer, byte_strings[info.len - 1], opcode, arg & 0xff, arg >> 8);
   strcat(format_buffer, buffer);
   sprintf(buffer, info.format, arg);
@@ -378,7 +391,9 @@ void log_cpu(processor_t processor) {
           processor.registers._status.n);
 
   strcat(format_buffer, buffer);
-  fprintf(fp, "%s", format_buffer);
+  if (fp != NULL) {
+    fprintf(fp, "%s", format_buffer);
+  }
 #ifdef DEBUG
   printf(format_buffer);
 #endif
