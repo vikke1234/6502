@@ -361,8 +361,6 @@ extern bool initialize_cpu_filename(char *path) {
     return false;
   }
 
-  struct stat buf;
-  stat(path, &buf);
   cartridge_t *cart = open_program(path);
   initialize_cpu(cart);
 
