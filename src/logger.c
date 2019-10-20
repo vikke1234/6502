@@ -359,7 +359,6 @@ void log_cpu(processor_t processor) {
   if (info.format == NULL) {
     fprintf(fp, "error: opcode $%x\n", opcode);
     printf("Error invalid opcode: $%x, pc: $%x\n", opcode, processor.registers.pc-1);
-    close_log();
     exit(1);
   }
 
@@ -401,7 +400,9 @@ void log_cpu(processor_t processor) {
 }
 
 void close_log() {
+  puts("freeing log");
   if (fp != NULL) {
     fclose(fp);
+    fp = NULL;
   }
 }
