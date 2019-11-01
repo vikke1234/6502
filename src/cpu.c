@@ -23,6 +23,7 @@
 #define ANSI_RED "\x1b[31m"
 #define ANSI_END "\x1b[0m"
 
+#define UNOFFICIAL_OPCODES
 /* TODO:
  * add clock counter to make drawing easier
  */
@@ -582,7 +583,6 @@ extern void interpret_opcode(void) {
       [0x89] = &NOP_absolutex,
       [0xdc] = &NOP_absolutex,
       [0xfc] = &NOP_absolutex,
-
 #ifdef UNOFFICIAL_OPCODES
       [0x6b] = &ARR,
       [0x4b] = &ALR,
@@ -750,6 +750,17 @@ static inline uint8_t *indexed_indirect(uint16_t address) {
 
 static inline __attribute__((__always_inline__)) uint8_t *
 dereference_address(uint16_t address) {
+  switch (address >> 14) {
+  case 1:
+    address &= ~0xffffc000; /* PRG RAM */
+    break;
+  case 2:
+    address &= ~0xffffdff8; /* APU */
+    break;
+  case 3:
+    address &= ~0xffff4000; /* PRG ROM */
+    break;
+  }
   return &processor.memory[address]; /* always in range due to address being an
                               2 bytes long */
 }
@@ -809,7 +820,7 @@ static inline void zero_check(uint8_t value) {
   processor.registers._status.z = !value;
 }
 static inline void negative_check(uint8_t value) {
-  processor.registers._status.n = value & 0x80;
+  processor.registers._status.n = (value & 0x80) != 0;
 }
 static inline void overflow_check(uint16_t value, uint16_t result) {
   /* algo to check if there's been an overflow, google for more info */
@@ -853,31 +864,31 @@ static void ADC_im(void) {
 static void ADC_zero(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 3;
-  ADC_help(processor.memory[location]);
+  ADC_help(read_byte_at(location));
 }
 
 static void ADC_zerox(void) {
   uint8_t location = read_byte();
   processor.clock_ticks += 4;
-  ADC_help(processor.memory[location + processor.registers.x]);
+  ADC_help(read_byte_at(location + processor.registers.x));
 }
 
 static void ADC_absolute(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 4;
-  ADC_help(processor.memory[location]);
+  ADC_help(read_byte_at(location));
 }
 
 static void ADC_absolutex(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 3 + page_check(location, processor.registers.x);
-  ADC_help(processor.memory[location + processor.registers.x]);
+  ADC_help(read_byte_at(location + processor.registers.x));
 }
 
 static void ADC_absolutey(void) {
   uint16_t location = read_word();
   processor.clock_ticks += 3 + page_check(location, processor.registers.y);
-  ADC_help(processor.memory[location + processor.registers.y]);
+  ADC_help(read_byte_at(location + processor.registers.y));
 }
 
 static void ADC_indirectx(void) {
@@ -907,33 +918,33 @@ static void AND_im(void) {
 
 static void AND_zero(void) {
   processor.clock_ticks += 3;
-  uint8_t value = processor.memory[read_byte()];
+  uint8_t value = read_byte_at(read_byte());
   AND_help(value);
 }
 
 static void AND_zerox(void) {
   processor.clock_ticks += 4;
   uint8_t location = read_byte();
-  AND_help(processor.memory[location + processor.registers.x]);
+  AND_help(read_byte_at(location + processor.registers.x));
 }
 
 static void AND_absolute(void) {
   processor.clock_ticks += 4;
   uint16_t location = read_word();
-  AND_help(processor.memory[location]);
+  AND_help(read_byte_at(location));
 }
 
 static void AND_absolutex(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4 + page_check(address, processor.registers.x);
 
-  AND_help(processor.memory[address + processor.registers.x]);
+  AND_help(read_byte_at(address + processor.registers.x));
 }
 
 static void AND_absolutey(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4 + page_check(address, processor.registers.x);
-  AND_help(processor.memory[address + processor.registers.y]);
+  AND_help(read_byte_at(address + processor.registers.y));
 }
 
 static void AND_indirectx(void) {
@@ -965,25 +976,25 @@ static void ASL_accumulator(void) {
 static void ASL_zero(void) {
   processor.clock_ticks += 5;
   uint8_t location = read_byte();
-  ASL_help(&processor.memory[location]);
+  ASL_help(dereference_address(location));
 }
 
 static void ASL_zerox(void) {
   processor.clock_ticks += 6;
   uint8_t location = read_byte();
-  ASL_help(&processor.memory[location + processor.registers.x]);
+  ASL_help(dereference_address(location + processor.registers.x));
 }
 
 static void ASL_absolute(void) {
   processor.clock_ticks += 6;
   uint16_t location = read_word();
-  ASL_help(&processor.memory[location]);
+  ASL_help(dereference_address(location));
 }
 
 static void ASL_absolutex(void) {
   processor.clock_ticks += 7;
   uint16_t location = read_word();
-  ASL_help(&processor.memory[location + processor.registers.x]);
+  ASL_help(dereference_address(location + processor.registers.x));
 }
 
 static void branch(bool flag, bool b) {
@@ -1014,7 +1025,7 @@ void BIT_help(uint16_t bit_test) {
 static void BIT_zero(void) {
   uint8_t location = read_byte();
   uint8_t bit_test =
-      processor.registers.accumulator & processor.memory[location];
+      processor.registers.accumulator & read_byte_at(location);
   processor.clock_ticks += 3;
   BIT_help(bit_test);
 }
@@ -1022,7 +1033,7 @@ static void BIT_zero(void) {
 static void BIT_absolute(void) {
   uint16_t location = read_word();
   uint8_t bit_test =
-      processor.registers.accumulator & processor.memory[location];
+      processor.registers.accumulator & read_byte_at(location);
   processor.clock_ticks += 4;
   BIT_help(bit_test);
 }
@@ -1090,28 +1101,28 @@ static void CMP_im(void) {
 
 static void CMP_zero(void) {
   uint8_t location = read_byte();
-  uint8_t value = processor.memory[location];
+  uint8_t value = read_byte_at(location);
   processor.clock_ticks += 3;
   CMP_help(value);
 }
 
 static void CMP_zerox(void) {
   uint8_t location = read_byte();
-  uint8_t value = processor.memory[location + processor.registers.x];
+  uint8_t value = read_byte_at(location + processor.registers.x);
   processor.clock_ticks += 4;
   CMP_help(value);
 }
 
 static void CMP_absolute(void) {
   uint16_t location = read_word();
-  uint8_t value = processor.memory[location];
+  uint8_t value = read_byte_at(location);
   processor.clock_ticks += 4;
   CMP_help(value);
 }
 
 static void CMP_absolutex(void) {
   uint16_t location = read_word();
-  uint8_t value = processor.memory[location + processor.registers.x];
+  uint8_t value = read_byte_at(location + processor.registers.x);
   processor.clock_ticks += 4 + page_check(location, processor.registers.x);
   CMP_help(value);
 }
@@ -1187,8 +1198,8 @@ static void CPY_absolute(void) {
 
 static void DEC_help(uint16_t location) {
   processor.memory[location]--;
-  zero_check(processor.memory[location]);
-  negative_check(processor.memory[location]);
+  zero_check(read_byte_at(location));
+  negative_check(read_byte_at(location));
 }
 
 static void DEC_zero(void) {
@@ -1292,8 +1303,8 @@ static void EOR_indirecty(void) {
 
 static void INC_help(uint16_t location) {
   processor.memory[location]++;
-  zero_check(processor.memory[location]);
-  negative_check(processor.memory[location]);
+  zero_check(read_byte_at(location));
+  negative_check(read_byte_at(location));
 }
 
 static void INC_zero(void) {
@@ -1370,31 +1381,31 @@ static void LDA_im(void) {
 static void LDA_zero(void) {
   processor.clock_ticks += 3;
   uint16_t location = read_byte();
-  LDA_help(processor.memory[location]);
+  LDA_help(read_word_at(location));
 }
 
 static void LDA_zerox(void) {
   processor.clock_ticks += 4;
   uint8_t location = read_byte();
-  LDA_help(processor.memory[location + processor.registers.x]);
+  LDA_help(read_byte_at(location + processor.registers.x));
 }
 
 static void LDA_absolute(void) {
   processor.clock_ticks += 4;
   uint16_t location = read_word();
-  LDA_help(processor.memory[location]);
+  LDA_help(read_byte_at(location));
 }
 
 static void LDA_absolutex(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4 + page_check(address, processor.registers.x);
-  LDA_help(processor.memory[address + processor.registers.x]);
+  LDA_help(read_byte_at(address + processor.registers.x));
 }
 
 static void LDA_absolutey(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4 + page_check(address, processor.registers.y);
-  LDA_help(processor.memory[address + processor.registers.y]);
+  LDA_help(read_byte_at(address + processor.registers.y));
 }
 
 static void LDA_indirectx(void) {
@@ -1425,23 +1436,26 @@ static void LDX_im(void) {
 
 static void LDX_zero(void) {
   processor.clock_ticks += 3;
-  LDX_help(processor.memory[read_byte()]);
+  uint8_t location = read_byte();
+  LDX_help(read_byte_at(location));
 }
 
 static void LDX_zeroy(void) {
   processor.clock_ticks += 4;
-  LDX_help(processor.memory[read_byte() + processor.registers.y]);
+  uint8_t location = read_byte();
+  LDX_help(read_byte_at(location + processor.registers.y));
 }
 
 static void LDX_absolute(void) {
   processor.clock_ticks += 4;
-  LDX_help(processor.memory[read_word()]);
+  uint16_t location = read_word();
+  LDX_help(read_byte_at(location));
 }
 
 static void LDX_absolutey(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4 + page_check(address, processor.registers.y);
-  LDX_help(processor.memory[address + processor.registers.y]);
+  LDX_help(read_byte_at(address + processor.registers.y));
 }
 
 static void LDY_help(uint8_t value) {
@@ -1457,23 +1471,23 @@ static void LDY_im(void) {
 
 static void LDY_zero(void) {
   processor.clock_ticks += 3;
-  LDY_help(processor.memory[read_byte()]);
+  LDY_help(read_byte_at(read_byte()));
 }
 
 static void LDY_zerox(void) {
   processor.clock_ticks += 4;
-  LDY_help(processor.memory[read_byte() + processor.registers.x]);
+  LDY_help(read_byte_at(read_byte() + processor.registers.x));
 }
 
 static void LDY_absolute(void) {
   processor.clock_ticks += 4;
-  LDY_help(processor.memory[read_word()]);
+  LDY_help(read_byte_at(read_word()));
 }
 
 static void LDY_absolutex(void) {
   uint16_t address = read_word();
   processor.clock_ticks += 4 + page_check(address, processor.registers.x);
-  LDY_help(processor.memory[read_word() + processor.registers.x]);
+  LDY_help(read_byte_at(read_word() + processor.registers.x));
 }
 
 static void LSR_help(uint8_t *value) {
@@ -1928,7 +1942,7 @@ static void ASO_zero(void) {
 
 static void ASO_zerox(void) {
   uint8_t location = read_byte();
-  uint8_t *value = &processor.memory[location + processor.registers.x];
+  uint8_t *value = dereference_address(location + processor.registers.x);
   processor.clock_ticks += 5;
   ASL_help(value);
   ORA_help(*value);
@@ -2334,7 +2348,7 @@ static void TAS(void) {
   push_to_stack(processor.registers.x);
   tmp &= ((location >> 8) + 1);
 
-  processor.memory[location + processor.registers.y] = tmp;
+  processor.memory[read_byte_at(location + processor.registers.y)] = tmp;
 }
 
 /* essentially the same as XAS but for Y register */
@@ -2342,14 +2356,14 @@ static void SAY(void) {
   uint16_t location = read_word();
   uint8_t value = processor.registers.y & 0xf;
   processor.clock_ticks += 5;
-  processor.memory[location + processor.registers.x] = value;
+  processor.memory[read_byte_at(location + processor.registers.x)] = value;
 }
 
 static void XAS(void) {
   uint16_t location = read_word();
   uint8_t value = processor.registers.x & 0xf;
   processor.clock_ticks += 5;
-  processor.memory[location + processor.registers.x] = value;
+  processor.memory[read_byte_at(location + processor.registers.x)] = value;
 }
 
 /* TODO */
