@@ -57,7 +57,7 @@ typedef struct _processor_registers {
   };
 } registers_t;
 
-typedef struct {
+typedef struct __processor {
   uint8_t memory[TOTAL_MEMORY_SIZE + 1];
   registers_t registers;
   unsigned long long clock_ticks;
@@ -71,7 +71,6 @@ extern void interpret_opcode(void);
 */
 extern void initialize_cpu(cartridge_t *cart);
 extern bool initialize_cpu_filename(char *path);
-extern registers_t dump_registers(void);
 
 #ifdef __cplusplus
 }
