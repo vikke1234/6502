@@ -1,10 +1,11 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <errno.h>
 
 #include "../headers/logger.h"
+#define UNOFFICIAL_OPCODES
 
 static FILE *fp = NULL;
 
@@ -76,7 +77,7 @@ void log_cpu(processor_t processor) {
   /* formats from radare source
    * https://github.com/radare/radare2/blob/master/libr/asm/arch/6502/6502dis.c
    */
-  static opcode_t const ops[] = {
+  static opcode_t ops[] = {
       [0x01] = {"ora (0x%02x, x)", 2},
       [0x05] = {"ora 0x%02x", 2},
       [0x06] = {"asl 0x%02x", 2},
@@ -354,15 +355,17 @@ void log_cpu(processor_t processor) {
   unsigned char opcode = read_byte_at(&processor, processor.registers.pc++);
   opcode_t info = ops[opcode];
   uint16_t arg = 0;
-  const char *byte_strings[] = {"%.2x\t\t", "%.2x %.2x\t\t", "%.2x %.2x %.2x\t"};
+  const char *byte_strings[] = {"%.2X        ", "%.2X %.2X     ",
+                                "%.2X %.2X %.2X  "};
 
   if (info.format == NULL) {
     fprintf(fp, "error: opcode $%x\n", opcode);
-    printf("Error invalid opcode: $%x, pc: $%x\n", opcode, processor.registers.pc-1);
+    printf("Error invalid opcode: $%x, pc: $%x\n", opcode,
+           processor.registers.pc - 1);
     exit(1);
   }
 
-  if(info.len == 3) {
+  if (info.len == 3) {
     arg = read_word_at(&processor, processor.registers.pc);
   } else if (info.len == 2) {
     arg = read_byte_at(&processor, processor.registers.pc);
@@ -379,15 +382,10 @@ void log_cpu(processor_t processor) {
     strcat(format_buffer, "\t");
   }
   sprintf(buffer,
-          "\t\tA: 0x%04x X: 0x%02x Y: 0x%02x SP: 0x%02x P:  c: %d, z: %d, "
-          "i: %d, d: "
-          "%d, b: %d, V: %d, n: %d\n",
+          "\t\tA: 0x%02X X: 0x%02X Y: 0x%02X SP: 0x%02X P: %.02X CYC: %llu\n",
           processor.registers.accumulator, processor.registers.x,
           processor.registers.y, processor.registers._sp,
-          processor.registers._status.c, processor.registers._status.z,
-          processor.registers._status.i, processor.registers._status.d,
-          processor.registers._status.b, processor.registers._status.v,
-          processor.registers._status.n);
+          processor.registers.status, processor.clock_ticks);
 
   strcat(format_buffer, buffer);
   if (fp != NULL) {
