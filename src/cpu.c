@@ -30,7 +30,7 @@
 
 typedef void (*instruction_pointer)(void);
 
-processor_t processor;
+static processor_t processor;
 
 /* like 150 lines of prototypes, have fun :) */
 static void ADC_absolute(void);
@@ -521,6 +521,7 @@ extern void interpret_opcode(void) {
       [0x60] = &RTS,
 
       [0xe9] = &SBC_im,
+      [0xeb] = &SBC_im,
       [0xe5] = &SBC_zero,
       [0xf5] = &SBC_zerox,
       [0xed] = &SBC_absolute,
