@@ -1382,7 +1382,7 @@ static void LDA_im(void) {
 static void LDA_zero(void) {
   processor.clock_ticks += 3;
   uint16_t location = read_byte();
-  LDA_help(read_word_at(location));
+  LDA_help(read_byte_at(location));
 }
 
 static void LDA_zerox(void) {
