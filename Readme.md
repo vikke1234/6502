@@ -11,3 +11,7 @@ there' functions to dump the registers i.e. `dump_registers()` and running the n
 
 `cmake -G "Visual Studio 16 2019"`
 Open solution in VS and build
+
+#TODO
+1. Make it follow the nestest.log
+2. Implement ppu
